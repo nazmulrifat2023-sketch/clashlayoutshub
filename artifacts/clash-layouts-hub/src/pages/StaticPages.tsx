@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { Shield, Mail, FileText } from "lucide-react";
+import { Shield } from "lucide-react";
 
 export function AboutPage() {
   return (
@@ -28,37 +28,6 @@ export function AboutPage() {
   );
 }
 
-export function ContactPage() {
-  return (
-    <div className="max-w-xl mx-auto px-4 py-12">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-12 h-12 bg-secondary/10 rounded-xl flex items-center justify-center">
-          <Mail className="w-6 h-6 text-secondary" />
-        </div>
-        <h1 className="text-3xl font-black">Contact Us</h1>
-      </div>
-      <p className="text-muted-foreground mb-6">Have a question, found a bug, or want to partner with us? Reach out!</p>
-      <div className="bg-white rounded-xl border border-border p-6 space-y-4">
-        <div>
-          <label className="block text-sm font-semibold mb-1.5">Your Name</label>
-          <input placeholder="Clash Player" className="w-full px-3 py-2.5 border border-border rounded-lg text-sm" />
-        </div>
-        <div>
-          <label className="block text-sm font-semibold mb-1.5">Email</label>
-          <input type="email" placeholder="you@example.com" className="w-full px-3 py-2.5 border border-border rounded-lg text-sm" />
-        </div>
-        <div>
-          <label className="block text-sm font-semibold mb-1.5">Message</label>
-          <textarea rows={5} className="w-full px-3 py-2.5 border border-border rounded-lg text-sm resize-none" />
-        </div>
-        <button className="w-full py-2.5 bg-primary text-white rounded-lg text-sm font-bold hover:bg-primary/90 transition-colors">
-          Send Message
-        </button>
-      </div>
-      <p className="text-xs text-muted-foreground mt-4 text-center">Or email us directly: contact@clashlayoutshub.com</p>
-    </div>
-  );
-}
 
 export function NotFoundPage() {
   return (
