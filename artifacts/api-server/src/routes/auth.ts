@@ -221,4 +221,43 @@ router.get("/auth/google/callback", async (req: Request, res: Response): Promise
   }
 });
 
+// ── Admin Login ────────────────────────────────────────────────────────────────
+router.post("/admin/login", async (req: Request, res: Response): Promise<void> => {
+  const { email, password } = req.body as { email?: string; password?: string };
+
+  if (!email || !password) {
+    res.status(400).json({ error: "email and password are required" });
+    return;
+  }
+
+  const adminEmail = process.env.ADMIN_EMAIL;
+  const adminPassword = process.env.ADMIN_PASSWORD;
+
+  if (!adminEmail || !adminPassword) {
+    res.status(503).json({ error: "Admin credentials not configured. Set ADMIN_EMAIL and ADMIN_PASSWORD environment variables." });
+    return;
+  }
+
+  const emailMatch = email.toLowerCase() === adminEmail.toLowerCase();
+  const passwordMatch = password === adminPassword;
+
+  if (!emailMatch || !passwordMatch) {
+    res.status(401).json({ error: "Invalid email or password" });
+    return;
+  }
+
+  const token = jwt.sign({ sub: "admin", admin: true }, JWT_SECRET, { expiresIn: "12h" });
+  res.json({ token });
+});
+
+// ── Admin Token Verify ─────────────────────────────────────────────────────────
+router.get("/admin/verify", (req: Request, res: Response): void => {
+  const auth = req.headers.authorization;
+  const token = auth?.startsWith("Bearer ") ? auth.slice(7) : null;
+  if (!token) { res.status(401).json({ valid: false }); return; }
+  const payload = verifyToken(token) as { admin?: boolean } | null;
+  if (!payload || !payload.admin) { res.status(401).json({ valid: false }); return; }
+  res.json({ valid: true });
+});
+
 export default router;

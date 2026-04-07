@@ -1,30 +1,45 @@
 import { ReactNode, useState } from "react";
-import { Link, useLocation, Redirect } from "wouter";
+import { Link, useLocation } from "wouter";
 import {
   LayoutDashboard, Database, FileText, Users, AlertTriangle,
-  BarChart3, Settings, Shield, Menu, X, LogOut
+  BarChart3, Shield, Menu, LogOut, Loader2,
 } from "lucide-react";
 
-const ADMIN_PASSWORD = "clash-admin-2026";
-
+/** An admin_token is a JWT issued by POST /api/admin/login — starts with "ey" */
 export function useAdminAuth() {
   const token = localStorage.getItem("admin_token");
-  return token === ADMIN_PASSWORD;
+  return typeof token === "string" && token.startsWith("ey");
 }
 
 export function AdminLogin() {
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const [, setLocation] = useLocation();
 
-  function handleLogin(e: React.FormEvent) {
+  async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
-    if (password === ADMIN_PASSWORD) {
-      localStorage.setItem("admin_token", ADMIN_PASSWORD);
+    setError("");
+    setLoading(true);
+    try {
+      const res = await fetch(`${import.meta.env.BASE_URL}api/admin/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Login failed");
+        return;
+      }
+      localStorage.setItem("admin_token", data.token);
       setLocation("/admin");
       window.location.reload();
-    } else {
-      setError("Invalid password");
+    } catch {
+      setError("Network error — please try again");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -39,24 +54,43 @@ export function AdminLogin() {
         </div>
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
+            <label className="block text-sm font-medium mb-1.5">Email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder="admin@example.com"
+              required
+              autoComplete="email"
+              className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+            />
+          </div>
+          <div>
             <label className="block text-sm font-medium mb-1.5">Password</label>
             <input
               type="password"
               value={password}
               onChange={e => setPassword(e.target.value)}
               placeholder="Enter admin password"
+              required
+              autoComplete="current-password"
               className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
             />
-            {error && <p className="text-destructive text-xs mt-1">{error}</p>}
           </div>
-          <button type="submit"
-            className="w-full py-2.5 bg-primary text-white rounded-lg font-semibold hover:bg-primary/90 transition-colors">
-            Login
+          {error && (
+            <p className="text-destructive text-xs bg-destructive/5 border border-destructive/20 rounded-lg px-3 py-2">
+              {error}
+            </p>
+          )}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-2.5 bg-primary text-white rounded-lg font-semibold hover:bg-primary/90 transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
+          >
+            {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+            {loading ? "Verifying…" : "Login"}
           </button>
         </form>
-        <p className="text-xs text-muted-foreground mt-4 text-center">
-          Default: clash-admin-2026
-        </p>
       </div>
     </div>
   );
