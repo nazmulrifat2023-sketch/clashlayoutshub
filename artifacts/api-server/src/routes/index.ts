@@ -7,9 +7,11 @@ import reportsRouter from "./reports";
 import submissionsRouter from "./submissions";
 import analyticsRouter from "./analytics";
 import uploadRouter from "./upload";
+import authRouter from "./auth";
 
 const router: IRouter = Router();
 
+router.use(authRouter);
 router.use(healthRouter);
 router.use(basesRouter);
 router.use(blogRouter);

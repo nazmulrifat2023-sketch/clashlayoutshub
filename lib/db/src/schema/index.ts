@@ -5,3 +5,4 @@ export * from "./reports";
 export * from "./submissions";
 export * from "./views_analytics";
 export * from "./copies_analytics";
+export * from "./users";

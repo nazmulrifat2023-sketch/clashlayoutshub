@@ -2,6 +2,7 @@ import { Switch, Route, Router as WouterRouter } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "sonner";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import { AuthProvider } from "@/contexts/AuthContext";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { RecentlyViewedBar } from "@/components/base/RecentlyViewed";
@@ -12,6 +13,8 @@ import { BlogPage } from "@/pages/BlogPage";
 import { BlogDetailPage } from "@/pages/BlogDetailPage";
 import { SubmitBasePage } from "@/pages/SubmitBasePage";
 import { AboutPage, ContactPage, NotFoundPage } from "@/pages/StaticPages";
+import { LoginPage } from "@/pages/LoginPage";
+import { SignupPage } from "@/pages/SignupPage";
 import { AdminLayout } from "@/pages/admin/AdminLayout";
 import { AdminDashboard } from "@/pages/admin/AdminDashboard";
 import { AdminBases } from "@/pages/admin/AdminBases";
@@ -20,6 +23,7 @@ import { AdminBlog } from "@/pages/admin/AdminBlog";
 import { AdminBlogForm } from "@/pages/admin/AdminBlogForm";
 import { AdminSubmissions } from "@/pages/admin/AdminSubmissions";
 import { AdminReports } from "@/pages/admin/AdminReports";
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: { staleTime: 30000 },
@@ -68,6 +72,14 @@ function Router() {
         <PublicLayout><ContactPage /></PublicLayout>
       </Route>
 
+      {/* Auth routes */}
+      <Route path="/login">
+        <PublicLayout><LoginPage /></PublicLayout>
+      </Route>
+      <Route path="/signup">
+        <PublicLayout><SignupPage /></PublicLayout>
+      </Route>
+
       {/* Admin routes */}
       <Route path="/admin">
         <AdminLayout><AdminDashboard /></AdminLayout>
@@ -109,10 +121,12 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
-        <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-          <Router />
-        </WouterRouter>
-        <Toaster richColors position="top-right" />
+        <AuthProvider>
+          <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+            <Router />
+          </WouterRouter>
+          <Toaster richColors position="top-right" />
+        </AuthProvider>
       </LanguageProvider>
     </QueryClientProvider>
   );
