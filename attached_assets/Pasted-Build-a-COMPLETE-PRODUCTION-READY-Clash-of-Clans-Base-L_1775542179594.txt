@@ -1,0 +1,522 @@
+Build a COMPLETE, PRODUCTION-READY Clash of Clans Base Layout Library 
+website named ClashLayoutsHub.
+
+TECH STACK: Next.js 14 (App Router), TypeScript, Tailwind CSS (Light mode), 
+Supabase (DB + Auth + Storage)
+
+UNIQUE SELLING POINTS (competitors don't have these):
+1. Real-time "X players copied this base today" counter
+2. "Report Broken Link" system with auto-disable after 5 reports  
+3. Mobile-first base viewer (pinch to zoom on base image)
+4. Discord community join button on every base card
+5. Base copy counter per base (stored in Supabase)
+6. Multilingual support: English + Bengali + Hindi (i18n)
+7. "Recently Viewed" bases in sticky bottom bar (mobile)
+8. Base health score: auto-calculated from win_rate + reports + age
+
+═══════════════════════════════════════════════════════
+SECTION 1: DATABASE SCHEMA (Supabase - Complete with RLS)
+═══════════════════════════════════════════════════════
+
+-- bases table
+CREATE TABLE bases (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title TEXT NOT NULL,
+  slug TEXT UNIQUE NOT NULL,
+  townhall INTEGER CHECK (townhall BETWEEN 3 AND 18),
+  base_type TEXT CHECK (base_type IN (
+    'War','Farming','Hybrid','Trophy',
+    'Anti 3 Star','Anti Air','Legend League','Progress'
+  )),
+  image_url TEXT NOT NULL,
+  layout_link TEXT NOT NULL,
+  description TEXT NOT NULL,
+  views INTEGER DEFAULT 0,
+  copies INTEGER DEFAULT 0,
+  report_count INTEGER DEFAULT 0,
+  is_active BOOLEAN DEFAULT true,
+  key_features TEXT[] DEFAULT '{}',
+  best_against TEXT[] DEFAULT '{}',
+  win_rate INTEGER DEFAULT 80,
+  difficulty TEXT DEFAULT 'Medium',
+  rating_avg DECIMAL DEFAULT 0,
+  rating_count INTEGER DEFAULT 0,
+  health_score INTEGER GENERATED ALWAYS AS (
+    GREATEST(0, win_rate - (report_count * 5))
+  ) STORED,
+  approved BOOLEAN DEFAULT true,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- RLS Policies
+ALTER TABLE bases ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public read approved bases" ON bases
+  FOR SELECT USING (approved = true AND is_active = true);
+CREATE POLICY "Admin full access" ON bases
+  FOR ALL USING (
+    auth.jwt() ->> 'email' = current_setting('app.admin_email')
+  );
+
+-- blog_posts table
+CREATE TABLE blog_posts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title TEXT NOT NULL,
+  slug TEXT UNIQUE NOT NULL,
+  content TEXT NOT NULL,
+  excerpt TEXT NOT NULL,
+  featured_image TEXT NOT NULL,
+  views INTEGER DEFAULT 0,
+  meta_title TEXT,
+  meta_description TEXT,
+  published BOOLEAN DEFAULT true,
+  published_at TIMESTAMP DEFAULT NOW(),
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- submissions table
+CREATE TABLE submissions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES auth.users(id),
+  townhall INTEGER,
+  base_type TEXT,
+  layout_link TEXT NOT NULL,
+  description TEXT,
+  image_url TEXT,
+  status TEXT DEFAULT 'pending' 
+    CHECK (status IN ('pending','approved','rejected')),
+  admin_notes TEXT,
+  submitted_at TIMESTAMP DEFAULT NOW()
+);
+
+-- comments table
+CREATE TABLE comments (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  base_id UUID REFERENCES bases(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES auth.users(id),
+  user_name TEXT NOT NULL,
+  content TEXT NOT NULL,
+  rating INTEGER CHECK (rating BETWEEN 1 AND 5),
+  approved BOOLEAN DEFAULT true,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- reports table (NEW - unique feature)
+CREATE TABLE reports (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  base_id UUID REFERENCES bases(id) ON DELETE CASCADE,
+  reason TEXT CHECK (reason IN (
+    'broken_link','outdated','wrong_th','spam','other'
+  )),
+  reporter_ip TEXT,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- views_analytics table
+CREATE TABLE views_analytics (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  base_id UUID REFERENCES bases(id),
+  viewed_at DATE DEFAULT CURRENT_DATE,
+  count INTEGER DEFAULT 1,
+  UNIQUE(base_id, viewed_at)
+);
+
+-- saved_bases table
+CREATE TABLE saved_bases (
+  user_id UUID REFERENCES auth.users(id),
+  base_id UUID REFERENCES bases(id) ON DELETE CASCADE,
+  saved_at TIMESTAMP DEFAULT NOW(),
+  PRIMARY KEY (user_id, base_id)
+);
+
+═══════════════════════════════════════════════════════
+SECTION 2: FILE STRUCTURE (Complete)
+═══════════════════════════════════════════════════════
+
+app/
+├── layout.tsx          (AdSense + Consent Mode v2 + GA4)
+├── page.tsx            (Homepage)
+├── globals.css
+├── sitemap.ts
+├── robots.ts
+├── th/
+│   └── [townhall]/
+│       └── page.tsx    (TH pages with filters + ISR)
+├── base/
+│   └── [slug]/
+│       └── page.tsx    (Base detail + comments + report)
+├── blog/
+│   ├── page.tsx        (Blog listing)
+│   └── [slug]/
+│       └── page.tsx    (Blog post)
+├── admin/
+│   ├── layout.tsx      (Admin auth guard)
+│   ├── page.tsx        (Dashboard + charts)
+│   ├── bases/
+│   │   ├── page.tsx    (Base list + bulk actions)
+│   │   ├── add/page.tsx
+│   │   └── [id]/edit/page.tsx
+│   ├── blog/
+│   │   ├── page.tsx
+│   │   └── add/page.tsx
+│   ├── submissions/page.tsx
+│   ├── reports/page.tsx    (NEW - broken link manager)
+│   ├── analytics/page.tsx
+│   └── settings/page.tsx
+├── submit-base/page.tsx
+├── about/page.tsx
+├── contact/page.tsx
+├── privacy-policy/page.tsx
+├── terms-of-service/page.tsx
+├── dmca/page.tsx
+├── login/page.tsx
+└── signup/page.tsx
+
+components/
+├── admin/
+│   ├── BaseForm.tsx        (Full form with AI description)
+│   ├── BlogForm.tsx
+│   ├── DashboardChart.tsx  (Recharts)
+│   ├── BulkImport.tsx
+│   └── ReportManager.tsx
+├── base/
+│   ├── BaseCard.tsx        (with copy counter + save btn)
+│   ├── BaseGrid.tsx        (infinite scroll)
+│   ├── BaseFilters.tsx     (TH + type + difficulty)
+│   ├── RecentlyViewed.tsx  (sticky mobile bar)
+│   ├── ReportModal.tsx     (NEW)
+│   ├── RatingStars.tsx
+│   └── CommentSection.tsx
+├── ads/
+│   ├── AdUnit.tsx
+│   ├── ConsentBanner.tsx   (Consent Mode v2)
+│   └── AdPlacements.tsx
+├── layout/
+│   ├── Header.tsx
+│   ├── Footer.tsx
+│   └── MobileNav.tsx
+└── ui/
+    ├── Button.tsx
+    ├── Input.tsx
+    ├── Modal.tsx
+    ├── Toast.tsx
+    ├── Skeleton.tsx
+    └── LanguageSwitcher.tsx  (EN/BN/HI)
+
+lib/
+├── supabase/
+│   ├── client.ts
+│   ├── server.ts
+│   └── admin.ts
+├── seo/
+│   ├── metadata.ts
+│   └── schema.ts       (JSON-LD: WebPage, Article, FAQ)
+├── i18n/
+│   ├── en.json
+│   ├── bn.json         (Bengali)
+│   └── hi.json         (Hindi)
+├── utils/
+│   ├── slugify.ts
+│   ├── formatDate.ts
+│   └── validators.ts
+└── hooks/
+    ├── useAuth.ts
+    ├── useCopyCounter.ts   (real-time copies)
+    ├── useRecentlyViewed.ts
+    └── useLocalStorage.ts
+
+scripts/
+├── seed.ts             (1000+ bases with unique descriptions)
+├── seed-blogs.ts       (30 blog posts)
+└── check-links.ts      (broken link checker)
+
+public/
+├── ads.txt
+├── favicon.ico
+└── logo.png
+
+═══════════════════════════════════════════════════════
+SECTION 3: HOMEPAGE (Complete Sections)
+═══════════════════════════════════════════════════════
+
+Homepage sections IN ORDER:
+1. Hero: "Find the Best Clash of Clans Base Layouts"
+   - Search bar (search by TH level or type)
+   - TH level quick-select buttons (TH3 to TH18)
+   - "Base of the Day" featured card
+   - Stats bar: "1,000+ Bases | 500K+ Players Helped | Updated Daily"
+
+2. AD UNIT (hero_bottom)
+
+3. Browse by Town Hall:
+   - Grid of TH3-TH18 cards with icons
+   - Each shows: base count, most popular type
+
+4. AD UNIT (after_th_grid)
+
+5. Trending This Week:
+   - Top 6 bases sorted by copies (last 7 days)
+   - "🔥 Trending" badge
+
+6. AD UNIT (after_trending)
+
+7. Latest Bases:
+   - 12 most recent bases
+   - "View All" button
+
+8. Blog Preview:
+   - 3 latest blog posts
+
+9. AD UNIT (before_footer)
+
+10. Footer
+
+═══════════════════════════════════════════════════════
+SECTION 4: TH PAGES (th/[townhall]/page.tsx)
+═══════════════════════════════════════════════════════
+
+Each TH page MUST have:
+- ISR: revalidate every 3600 seconds
+- Unique 800+ word intro content (no duplicate across TH pages)
+- Filter bar: Type | Difficulty | Sort (Latest/Most Viewed/Top Rated)
+- AD UNIT above filters
+- Base grid with infinite scroll (20 per page)
+- AD UNIT after every 9th base card
+- "Load More" button fallback
+- Related TH links (TH-1 and TH+1)
+- FAQ section (5 questions, JSON-LD schema)
+- Breadcrumb (JSON-LD)
+
+SEO Meta per TH page:
+title: "TH{X} Base Layouts 2026 - Best Town Hall {X} Bases | ClashLayoutsHub"
+description: "Download the best TH{X} base layouts for war, farming, and 
+trophy pushing. {count} verified bases updated for 2026 meta."
+
+═══════════════════════════════════════════════════════
+SECTION 5: BASE DETAIL PAGE (base/[slug]/page.tsx)
+═══════════════════════════════════════════════════════
+
+Layout:
+- Breadcrumb: Home > TH{X} Bases > {base title}
+- Base image (full width, pinch-to-zoom on mobile)
+- AD UNIT (below image)
+- Details: TH level, Type, Difficulty, Win Rate, Health Score
+- "Copy Layout" button → opens clashofclans.com link + increments copies
+- "Save to Favorites" button (requires login)
+- "Report Issue" button → ReportModal
+- Key Features list
+- Best Against section (troop icons)
+- Description (full text, 300-500 words)
+- AD UNIT (middle of description)
+- Similar Bases (6 cards, same TH + type)
+- Comments + Rating section
+- AD UNIT (before comments)
+- FAQ (3 questions specific to base type)
+
+═══════════════════════════════════════════════════════
+SECTION 6: ADMIN PANEL
+═══════════════════════════════════════════════════════
+
+Admin auth: Check if logged-in user email === ADMIN_EMAIL env var.
+Redirect to /login if not admin.
+
+6.1 Dashboard (/admin):
+- Cards: Total Bases, Total Views, Pending Submissions, Active Reports
+- Line chart: Views last 30 days (Recharts)
+- Bar chart: Bases by TH level
+- Table: Top 10 most copied bases
+- Table: Last 10 submissions
+
+6.2 Base Manager (/admin/bases):
+- Table with: image, title, TH, type, views, copies, health_score, status
+- Search + filter by TH + filter by type
+- Pagination (50 per page)
+- Bulk: Delete | Approve | Disable | Export CSV
+- Row actions: Edit | Disable | Delete
+
+6.3 Add/Edit Base Form (/admin/bases/add):
+  Fields:
+  - Image upload (drag & drop → Supabase Storage → auto watermark 
+    "ClashLayoutsHub" bottom-right)
+  - Town Hall (select TH3-TH18)
+  - Base Type (select)
+  - Difficulty (select)
+  - Title (auto-generate: "TH{X} {Type} Base #{count+1}" - editable)
+  - Layout Link (validate: must contain "link.clashofclans.com")
+  - Test Link button (fetch HEAD request to verify)
+  - Description (textarea, 200+ char counter)
+  - AI Suggest button → calls /api/suggest-description → returns 
+    300-word description based on TH + type + features
+  - Key Features (dynamic list, max 8, with pre-defined suggestions)
+  - Best Against (multi-checkbox)
+  - Win Rate (slider 0-100)
+  - Approved toggle (default: true)
+  - Save button
+
+6.4 Report Manager (/admin/reports):
+- List bases with report_count > 0
+- Show report reasons
+- Actions: Mark as Fixed | Disable Base | Dismiss Reports
+- Auto-disable bases with report_count >= 5
+
+6.5 Submission Manager (/admin/submissions):
+- List pending submissions
+- Preview modal (show all fields)
+- Approve → create base record
+- Reject → mark as rejected
+
+6.6 Analytics (/admin/analytics):
+- Views today / this week / this month
+- Pie chart: Traffic by TH level
+- Bar chart: Traffic by base type
+- Table: Most copied bases
+
+6.7 Settings (/admin/settings):
+- Site name, tagline
+- AdSense publisher ID (NEXT_PUBLIC_ADSENSE_CLIENT_ID)
+- Discord invite link
+- Social links (Twitter, YouTube, Facebook)
+- Footer text
+- Maintenance mode toggle
+
+═══════════════════════════════════════════════════════
+SECTION 7: AdSense REQUIREMENTS
+═══════════════════════════════════════════════════════
+
+7.1 public/ads.txt:
+google.com, pub-XXXXXXXXXXXX, DIRECT, f08c47fec0942fa0
+
+7.2 Consent Mode v2 (GDPR):
+- Cookie banner: Accept All | Reject All | Manage Preferences
+- Store in localStorage: consentMode = {analytics: bool, ads: bool}
+- Load AdSense only if ads consent = true
+- gtag consent update on user action
+
+7.3 Ad placements (NO ADS on: /admin/*, /login, /signup, 
+/privacy-policy, /terms*, /about, /contact, /dmca):
+- AdUnit component: checks consent before rendering
+- Responsive: min-height 90px mobile, 250px desktop
+- Labeled: "Advertisement" above each unit
+
+7.4 Page quality:
+- Every page minimum 400 words content
+- No broken links
+- Fast load (images lazy loaded, next/image)
+- Clear navigation with breadcrumbs
+
+═══════════════════════════════════════════════════════
+SECTION 8: SEO (Complete)
+═══════════════════════════════════════════════════════
+
+8.1 JSON-LD schemas:
+- Homepage: WebSite + SearchAction
+- TH pages: CollectionPage + BreadcrumbList + FAQPage
+- Base detail: ItemPage + BreadcrumbList + AggregateRating
+- Blog posts: Article + BreadcrumbList + FAQPage
+
+8.2 Sitemap (app/sitemap.ts):
+- All TH pages
+- All base detail pages (slug)
+- All blog posts (slug)
+- Static pages
+- Priority: Homepage 1.0, TH pages 0.9, bases 0.8, blogs 0.7
+
+8.3 robots.ts:
+Disallow: /admin, /api, /login, /signup
+
+8.4 Internal linking:
+- Each TH page links to TH-1 and TH+1
+- Each base links to 6 similar bases
+- Blog posts link to relevant TH pages and base details
+
+═══════════════════════════════════════════════════════
+SECTION 9: PERFORMANCE
+═══════════════════════════════════════════════════════
+
+- All images: next/image with lazy loading + blur placeholder
+- TH pages: ISR revalidate 3600s
+- Base detail: ISR revalidate 1800s  
+- Blog posts: ISR revalidate 86400s
+- Skeleton loaders on all async components
+- Infinite scroll with Intersection Observer (no library)
+- Bundle: dynamic imports for Recharts (admin only)
+- Font: next/font (self-hosted, no Google Fonts request)
+
+═══════════════════════════════════════════════════════
+SECTION 10: ENVIRONMENT VARIABLES (.env.local)
+═══════════════════════════════════════════════════════
+
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+NEXT_PUBLIC_ADSENSE_CLIENT_ID=ca-pub-XXXXXXXXXXXX
+NEXT_PUBLIC_SITE_URL=https://clashlayoutshub.com
+ADMIN_EMAIL=your@gmail.com
+NEXT_PUBLIC_GA_ID=G-XXXXXXXXXX
+NEXT_PUBLIC_DISCORD_INVITE=https://discord.gg/XXXXXXX
+
+═══════════════════════════════════════════════════════
+SECTION 11: SEED DATA (scripts/seed.ts)
+═══════════════════════════════════════════════════════
+
+Generate seed script that creates 1,000+ bases:
+- Use template-based description generation 
+  (combine TH level + type + features into unique paragraphs)
+- Realistic view counts: random between 500 and 250,000
+- Realistic copy counts: views * 0.3 (approx)
+- Image URLs: https://picsum.photos/seed/{random}/800/600
+- Layout links: https://link.clashofclans.com/en?action=CopyArmy&armylink=
+  (placeholder - admin replaces later)
+- Distribution:
+  TH3-TH6: 50 each
+  TH7-TH9: 60-80 each  
+  TH10-TH12: 80-100 each
+  TH13-TH15: 60-70 each
+  TH16-TH18: 30-40 each
+
+═══════════════════════════════════════════════════════
+SECTION 12: DEPLOYMENT (Vercel Ready)
+═══════════════════════════════════════════════════════
+
+Generate these files:
+- vercel.json (with headers for security)
+- .github/workflows/deploy.yml (CI/CD)
+- .env.example (all vars with placeholder values)
+- README.md (setup instructions step by step)
+
+vercel.json headers:
+- X-Content-Type-Options: nosniff
+- X-Frame-Options: DENY
+- X-XSS-Protection: 1; mode=block
+- Referrer-Policy: strict-origin-when-cross-origin
+
+README must include:
+1. Supabase setup (with exact SQL to run)
+2. Environment variables guide
+3. How to run seed script
+4. Vercel deployment steps
+5. Post-deployment checklist (ads.txt, sitemap, GA)
+
+═══════════════════════════════════════════════════════
+IMPORTANT RULES FOR CODE GENERATION:
+═══════════════════════════════════════════════════════
+
+1. NO placeholders, NO TODO comments, NO "coming soon"
+2. Every component must be 100% functional
+3. All forms must have proper validation
+4. Error states and loading states for every async operation
+5. TypeScript strict mode - no `any` types
+6. Mobile-first responsive design
+7. All pages must have proper metadata (title + description)
+8. Use Supabase client for client components, 
+   server client for server components
+9. Admin routes protected by middleware.ts
+10. Generate complete code - do not truncate
+
+
+
+==========================================
+
+Generate complete README.md with corrected 
+setup commands using @tiptap/react, @supabase/ssr, 
+tsx, sharp, and correct run order.

@@ -3,13 +3,28 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: ClashLayoutsHub API specification
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: bases
+    description: Base layout operations
+  - name: blog
+    description: Blog post operations
+  - name: comments
+    description: Comment operations
+  - name: reports
+    description: Report operations
+  - name: analytics
+    description: Analytics operations
+  - name: submissions
+    description: User submissions
+  - name: saved
+    description: Saved bases
+
 paths:
   /healthz:
     get:
@@ -24,6 +39,581 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /bases:
+    get:
+      operationId: listBases
+      tags: [bases]
+      summary: List bases with filters
+      parameters:
+        - name: townhall
+          in: query
+          schema:
+            type: integer
+            minimum: 3
+            maximum: 18
+        - name: base_type
+          in: query
+          schema:
+            type: string
+        - name: difficulty
+          in: query
+          schema:
+            type: string
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [latest, most_viewed, top_rated, most_copied]
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of bases
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BasesListResponse"
+
+    post:
+      operationId: createBase
+      tags: [bases]
+      summary: Create a new base (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateBaseBody"
+      responses:
+        "201":
+          description: Base created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Base"
+
+  /bases/trending:
+    get:
+      operationId: getTrendingBases
+      tags: [bases]
+      summary: Get trending bases (top copies last 7 days)
+      responses:
+        "200":
+          description: Trending bases
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Base"
+
+  /bases/base-of-day:
+    get:
+      operationId: getBaseOfDay
+      tags: [bases]
+      summary: Get base of the day
+      responses:
+        "200":
+          description: Base of the day
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Base"
+
+  /bases/stats:
+    get:
+      operationId: getSiteStats
+      tags: [bases]
+      summary: Get site-wide stats
+      responses:
+        "200":
+          description: Site statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SiteStats"
+
+  /bases/th-summary:
+    get:
+      operationId: getTownHallSummary
+      tags: [bases]
+      summary: Get base count and top type per TH level
+      responses:
+        "200":
+          description: TH summary
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TownHallSummary"
+
+  /bases/{id}:
+    get:
+      operationId: getBase
+      tags: [bases]
+      summary: Get a single base by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Base details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Base"
+
+    put:
+      operationId: updateBase
+      tags: [bases]
+      summary: Update a base (admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateBaseBody"
+      responses:
+        "200":
+          description: Updated base
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Base"
+
+    delete:
+      operationId: deleteBase
+      tags: [bases]
+      summary: Delete a base (admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /bases/slug/{slug}:
+    get:
+      operationId: getBaseBySlug
+      tags: [bases]
+      summary: Get a base by slug
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Base details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Base"
+
+  /bases/{id}/copy:
+    post:
+      operationId: incrementBaseCopy
+      tags: [bases]
+      summary: Increment copy counter for a base
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Copy count updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CopyResponse"
+
+  /bases/{id}/view:
+    post:
+      operationId: incrementBaseView
+      tags: [bases]
+      summary: Increment view counter for a base
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: View count updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /bases/{id}/similar:
+    get:
+      operationId: getSimilarBases
+      tags: [bases]
+      summary: Get similar bases (same TH + type)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Similar bases
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Base"
+
+  /bases/{id}/today-copies:
+    get:
+      operationId: getBaseTodayCopies
+      tags: [bases]
+      summary: Get how many copies today
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Today copies count
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TodayCopiesResponse"
+
+  /blog:
+    get:
+      operationId: listBlogPosts
+      tags: [blog]
+      summary: List blog posts
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        "200":
+          description: List of blog posts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlogListResponse"
+
+    post:
+      operationId: createBlogPost
+      tags: [blog]
+      summary: Create a blog post (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateBlogPostBody"
+      responses:
+        "201":
+          description: Blog post created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlogPost"
+
+  /blog/{slug}:
+    get:
+      operationId: getBlogPost
+      tags: [blog]
+      summary: Get a blog post by slug
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Blog post
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlogPost"
+
+    put:
+      operationId: updateBlogPost
+      tags: [blog]
+      summary: Update a blog post (admin only)
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateBlogPostBody"
+      responses:
+        "200":
+          description: Updated blog post
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlogPost"
+
+    delete:
+      operationId: deleteBlogPost
+      tags: [blog]
+      summary: Delete a blog post (admin only)
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /comments/{baseId}:
+    get:
+      operationId: listComments
+      tags: [comments]
+      summary: List comments for a base
+      parameters:
+        - name: baseId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Comments list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Comment"
+
+    post:
+      operationId: addComment
+      tags: [comments]
+      summary: Add a comment to a base
+      parameters:
+        - name: baseId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCommentBody"
+      responses:
+        "201":
+          description: Comment added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Comment"
+
+  /reports:
+    get:
+      operationId: listReports
+      tags: [reports]
+      summary: List all reports (admin only)
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+      responses:
+        "200":
+          description: Reports list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReportsListResponse"
+
+    post:
+      operationId: createReport
+      tags: [reports]
+      summary: Report a base issue
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateReportBody"
+      responses:
+        "201":
+          description: Report submitted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /submissions:
+    get:
+      operationId: listSubmissions
+      tags: [submissions]
+      summary: List submissions (admin only)
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, approved, rejected]
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+      responses:
+        "200":
+          description: Submissions list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmissionsListResponse"
+
+    post:
+      operationId: createSubmission
+      tags: [submissions]
+      summary: Submit a base for review
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSubmissionBody"
+      responses:
+        "201":
+          description: Submission created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /submissions/{id}:
+    put:
+      operationId: updateSubmission
+      tags: [submissions]
+      summary: Approve/reject a submission (admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateSubmissionBody"
+      responses:
+        "200":
+          description: Submission updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /analytics/dashboard:
+    get:
+      operationId: getDashboardAnalytics
+      tags: [analytics]
+      summary: Get admin dashboard analytics
+      responses:
+        "200":
+          description: Dashboard analytics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardAnalytics"
+
+  /analytics/views:
+    get:
+      operationId: getViewsAnalytics
+      tags: [analytics]
+      summary: Get views analytics for last 30 days
+      responses:
+        "200":
+          description: Views analytics
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ViewsAnalyticsEntry"
+
+  /analytics/top-bases:
+    get:
+      operationId: getTopCopiedBases
+      tags: [analytics]
+      summary: Get top 10 most copied bases
+      responses:
+        "200":
+          description: Top copied bases
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Base"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +624,490 @@ components:
       required:
         - status
 
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+        - message
+
+    Base:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        slug:
+          type: string
+        townhall:
+          type: integer
+        base_type:
+          type: string
+        image_url:
+          type: string
+        layout_link:
+          type: string
+        description:
+          type: string
+        views:
+          type: integer
+        copies:
+          type: integer
+        report_count:
+          type: integer
+        is_active:
+          type: boolean
+        key_features:
+          type: array
+          items:
+            type: string
+        best_against:
+          type: array
+          items:
+            type: string
+        win_rate:
+          type: integer
+        difficulty:
+          type: string
+        rating_avg:
+          type: number
+        rating_count:
+          type: integer
+        health_score:
+          type: integer
+        approved:
+          type: boolean
+        created_at:
+          type: string
+        updated_at:
+          type: string
+      required:
+        - id
+        - title
+        - slug
+        - townhall
+        - base_type
+        - image_url
+        - layout_link
+        - description
+
+    CreateBaseBody:
+      type: object
+      properties:
+        title:
+          type: string
+        slug:
+          type: string
+        townhall:
+          type: integer
+        base_type:
+          type: string
+        image_url:
+          type: string
+        layout_link:
+          type: string
+        description:
+          type: string
+        key_features:
+          type: array
+          items:
+            type: string
+        best_against:
+          type: array
+          items:
+            type: string
+        win_rate:
+          type: integer
+        difficulty:
+          type: string
+      required:
+        - title
+        - townhall
+        - base_type
+        - image_url
+        - layout_link
+        - description
+
+    UpdateBaseBody:
+      type: object
+      properties:
+        title:
+          type: string
+        townhall:
+          type: integer
+        base_type:
+          type: string
+        image_url:
+          type: string
+        layout_link:
+          type: string
+        description:
+          type: string
+        key_features:
+          type: array
+          items:
+            type: string
+        best_against:
+          type: array
+          items:
+            type: string
+        win_rate:
+          type: integer
+        difficulty:
+          type: string
+        is_active:
+          type: boolean
+        approved:
+          type: boolean
+
+    BasesListResponse:
+      type: object
+      properties:
+        bases:
+          type: array
+          items:
+            $ref: "#/components/schemas/Base"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+        totalPages:
+          type: integer
+      required:
+        - bases
+        - total
+        - page
+        - limit
+        - totalPages
+
+    SiteStats:
+      type: object
+      properties:
+        totalBases:
+          type: integer
+        totalViews:
+          type: integer
+        totalCopies:
+          type: integer
+        totalBlogPosts:
+          type: integer
+      required:
+        - totalBases
+        - totalViews
+        - totalCopies
+        - totalBlogPosts
+
+    TownHallSummary:
+      type: object
+      properties:
+        townhall:
+          type: integer
+        count:
+          type: integer
+        topType:
+          type: string
+      required:
+        - townhall
+        - count
+        - topType
+
+    CopyResponse:
+      type: object
+      properties:
+        copies:
+          type: integer
+        message:
+          type: string
+      required:
+        - copies
+        - message
+
+    TodayCopiesResponse:
+      type: object
+      properties:
+        todayCopies:
+          type: integer
+      required:
+        - todayCopies
+
+    BlogPost:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        slug:
+          type: string
+        content:
+          type: string
+        excerpt:
+          type: string
+        featured_image:
+          type: string
+        views:
+          type: integer
+        meta_title:
+          type: string
+        meta_description:
+          type: string
+        published:
+          type: boolean
+        published_at:
+          type: string
+        created_at:
+          type: string
+      required:
+        - id
+        - title
+        - slug
+        - content
+        - excerpt
+        - featured_image
+
+    CreateBlogPostBody:
+      type: object
+      properties:
+        title:
+          type: string
+        slug:
+          type: string
+        content:
+          type: string
+        excerpt:
+          type: string
+        featured_image:
+          type: string
+        meta_title:
+          type: string
+        meta_description:
+          type: string
+        published:
+          type: boolean
+      required:
+        - title
+        - content
+        - excerpt
+        - featured_image
+
+    BlogListResponse:
+      type: object
+      properties:
+        posts:
+          type: array
+          items:
+            $ref: "#/components/schemas/BlogPost"
+        total:
+          type: integer
+        page:
+          type: integer
+        totalPages:
+          type: integer
+      required:
+        - posts
+        - total
+        - page
+        - totalPages
+
+    Comment:
+      type: object
+      properties:
+        id:
+          type: string
+        base_id:
+          type: string
+        user_name:
+          type: string
+        content:
+          type: string
+        rating:
+          type: integer
+        approved:
+          type: boolean
+        created_at:
+          type: string
+      required:
+        - id
+        - base_id
+        - user_name
+        - content
+
+    CreateCommentBody:
+      type: object
+      properties:
+        user_name:
+          type: string
+        content:
+          type: string
+        rating:
+          type: integer
+      required:
+        - user_name
+        - content
+
+    Report:
+      type: object
+      properties:
+        id:
+          type: string
+        base_id:
+          type: string
+        base_title:
+          type: string
+        reason:
+          type: string
+        reporter_ip:
+          type: string
+        created_at:
+          type: string
+      required:
+        - id
+        - base_id
+        - reason
+
+    CreateReportBody:
+      type: object
+      properties:
+        base_id:
+          type: string
+        reason:
+          type: string
+      required:
+        - base_id
+        - reason
+
+    ReportsListResponse:
+      type: object
+      properties:
+        reports:
+          type: array
+          items:
+            $ref: "#/components/schemas/Report"
+        total:
+          type: integer
+        page:
+          type: integer
+        totalPages:
+          type: integer
+      required:
+        - reports
+        - total
+        - page
+        - totalPages
+
+    Submission:
+      type: object
+      properties:
+        id:
+          type: string
+        townhall:
+          type: integer
+        base_type:
+          type: string
+        layout_link:
+          type: string
+        description:
+          type: string
+        image_url:
+          type: string
+        status:
+          type: string
+        admin_notes:
+          type: string
+        submitted_at:
+          type: string
+      required:
+        - id
+        - layout_link
+        - status
+
+    CreateSubmissionBody:
+      type: object
+      properties:
+        townhall:
+          type: integer
+        base_type:
+          type: string
+        layout_link:
+          type: string
+        description:
+          type: string
+        image_url:
+          type: string
+      required:
+        - layout_link
+
+    UpdateSubmissionBody:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [pending, approved, rejected]
+        admin_notes:
+          type: string
+      required:
+        - status
+
+    SubmissionsListResponse:
+      type: object
+      properties:
+        submissions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Submission"
+        total:
+          type: integer
+        page:
+          type: integer
+        totalPages:
+          type: integer
+      required:
+        - submissions
+        - total
+        - page
+        - totalPages
+
+    DashboardAnalytics:
+      type: object
+      properties:
+        totalBases:
+          type: integer
+        totalViews:
+          type: integer
+        pendingSubmissions:
+          type: integer
+        activeReports:
+          type: integer
+        basesByTownhall:
+          type: array
+          items:
+            type: object
+            properties:
+              townhall:
+                type: integer
+              count:
+                type: integer
+            required:
+              - townhall
+              - count
+      required:
+        - totalBases
+        - totalViews
+        - pendingSubmissions
+        - activeReports
+        - basesByTownhall
+
+    ViewsAnalyticsEntry:
+      type: object
+      properties:
+        date:
+          type: string
+        views:
+          type: integer
+      required:
+        - date
+        - views
