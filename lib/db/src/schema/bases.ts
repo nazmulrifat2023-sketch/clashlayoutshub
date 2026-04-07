@@ -23,6 +23,7 @@ export const basesTable = pgTable("bases", {
   rating_count: integer("rating_count").default(0).notNull(),
   approved: boolean("approved").default(true).notNull(),
   ai_analysis: text("ai_analysis"),
+  pro_tips: text("pro_tips").array().default([]).notNull(),
   created_at: timestamp("created_at").defaultNow().notNull(),
   updated_at: timestamp("updated_at").defaultNow().notNull(),
 });

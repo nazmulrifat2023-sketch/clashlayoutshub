@@ -35,6 +35,7 @@ export interface Base {
   health_score?: number;
   approved?: boolean;
   ai_analysis?: string;
+  pro_tips?: string[];
   created_at?: string;
   updated_at?: string;
 }
@@ -51,6 +52,7 @@ export interface CreateBaseBody {
   best_against?: string[];
   win_rate?: number;
   difficulty?: string;
+  pro_tips?: string[];
 }
 
 export interface UpdateBaseBody {
@@ -66,6 +68,7 @@ export interface UpdateBaseBody {
   difficulty?: string;
   is_active?: boolean;
   approved?: boolean;
+  pro_tips?: string[];
 }
 
 export interface BasesListResponse {

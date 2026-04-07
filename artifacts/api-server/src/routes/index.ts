@@ -10,12 +10,14 @@ import uploadRouter from "./upload";
 import authRouter from "./auth";
 import profileRouter from "./profile";
 import analyzeRouter from "./analyze";
+import proTipsRouter from "./pro-tips";
 
 const router: IRouter = Router();
 
 router.use(authRouter);
 router.use(profileRouter);
 router.use(analyzeRouter);
+router.use(proTipsRouter);
 router.use(healthRouter);
 router.use(basesRouter);
 router.use(blogRouter);

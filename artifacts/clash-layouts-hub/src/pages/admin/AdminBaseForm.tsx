@@ -21,6 +21,7 @@ const schema = z.object({
   win_rate: z.coerce.number().min(0).max(100),
   key_features: z.string().optional(),
   best_against: z.string().optional(),
+  pro_tips: z.string().optional(),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -193,6 +194,7 @@ export function AdminBaseForm() {
 
   const [linkStatus, setLinkStatus] = useState<LinkStatus>("idle");
   const [suggestingAi, setSuggestingAi] = useState(false);
+  const [generatingTips, setGeneratingTips] = useState(false);
   const [imageUrl, setImageUrl] = useState("");
 
   const { data: existingBase } = useGetBase(id || "", { query: { enabled: isEdit } });
@@ -234,6 +236,7 @@ export function AdminBaseForm() {
         win_rate: existingBase.win_rate ?? 80,
         key_features: (existingBase.key_features ?? []).join("\n"),
         best_against: (existingBase.best_against ?? []).join("\n"),
+        pro_tips: (existingBase.pro_tips ?? []).join("\n"),
       });
     }
   }, [existingBase, reset]);
@@ -283,6 +286,34 @@ export function AdminBaseForm() {
     }
   }
 
+  async function handleGenerateProTips() {
+    const th = townhall;
+    const bt = base_type;
+    if (!th || !bt) {
+      toast.error("Select Town Hall Level and Base Type first");
+      return;
+    }
+    setGeneratingTips(true);
+    try {
+      const res = await fetch("/api/generate-pro-tips", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ townhall: th, base_type: bt }),
+      });
+      const json = await res.json();
+      if (Array.isArray(json.tips) && json.tips.length > 0) {
+        setValue("pro_tips", json.tips.join("\n"), { shouldValidate: true });
+        toast.success(`${json.tips.length} Pro Tips generated!`);
+      } else {
+        toast.error("AI returned no tips. Try again.");
+      }
+    } catch {
+      toast.error("Failed to generate tips");
+    } finally {
+      setGeneratingTips(false);
+    }
+  }
+
   async function onSubmit(data: FormData) {
     const payload = {
       ...data,
@@ -292,6 +323,9 @@ export function AdminBaseForm() {
         : [],
       best_against: data.best_against
         ? data.best_against.split("\n").map((s) => s.trim()).filter(Boolean)
+        : [],
+      pro_tips: data.pro_tips
+        ? data.pro_tips.split("\n").map((s) => s.trim()).filter(Boolean)
         : [],
     };
 
@@ -478,6 +512,32 @@ export function AdminBaseForm() {
               className={`${inputCls} resize-none mt-[38px]`}
             />
           </div>
+        </div>
+
+        {/* Pro Tips + AI Generate */}
+        <div>
+          <div className="flex items-center justify-between mb-1">
+            <label className="text-sm font-semibold">Pro Tips <span className="text-muted-foreground font-normal">(one per line)</span></label>
+            <button
+              type="button"
+              onClick={handleGenerateProTips}
+              disabled={generatingTips}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border transition-colors disabled:opacity-50"
+              style={{ background: generatingTips ? "#f5f0d8" : "linear-gradient(135deg,#D4AF37 0%,#b8860b 100%)", color: generatingTips ? "#92822a" : "#fff", borderColor: "#D4AF37" }}
+            >
+              {generatingTips
+                ? <Loader2 className="w-3 h-3 animate-spin" />
+                : <Sparkles className="w-3 h-3" />}
+              {generatingTips ? "Generating…" : "✨ Generate AI Pro Tips"}
+            </button>
+          </div>
+          <textarea
+            {...register("pro_tips")}
+            rows={5}
+            placeholder={"Position the Eagle Artillery centrally to cover all quadrants.\nUse Clan Castle troops with Electro Dragon for maximum air coverage."}
+            className={`${inputCls} resize-none`}
+          />
+          <p className="text-xs text-muted-foreground mt-1">Each line becomes a separate tip bullet on the base page. Review before saving.</p>
         </div>
 
         {/* Actions */}
