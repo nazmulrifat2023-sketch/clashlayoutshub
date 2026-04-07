@@ -8,10 +8,12 @@ import submissionsRouter from "./submissions";
 import analyticsRouter from "./analytics";
 import uploadRouter from "./upload";
 import authRouter from "./auth";
+import profileRouter from "./profile";
 
 const router: IRouter = Router();
 
 router.use(authRouter);
+router.use(profileRouter);
 router.use(healthRouter);
 router.use(basesRouter);
 router.use(blogRouter);

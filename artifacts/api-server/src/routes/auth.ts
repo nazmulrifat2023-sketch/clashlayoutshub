@@ -10,6 +10,12 @@ const router: IRouter = Router();
 const JWT_SECRET = process.env.SESSION_SECRET || "clash-jwt-secret-2026";
 const TOKEN_TTL = "30d";
 
+function isAdminEmail(email: string): boolean {
+  const adminEmail = process.env.ADMIN_EMAIL;
+  if (!adminEmail) return false;
+  return email.toLowerCase() === adminEmail.toLowerCase();
+}
+
 function makeToken(userId: string) {
   return jwt.sign({ sub: userId }, JWT_SECRET, { expiresIn: TOKEN_TTL });
 }
@@ -32,6 +38,16 @@ export async function getUserFromRequest(req: Request): Promise<typeof usersTabl
   return user ?? null;
 }
 
+function publicUser(user: typeof usersTable.$inferSelect) {
+  return {
+    id: user.id,
+    email: user.email,
+    display_name: user.display_name,
+    is_admin: isAdminEmail(user.email),
+    created_at: user.created_at,
+  };
+}
+
 router.post("/auth/register", async (req: Request, res: Response): Promise<void> => {
   const { email, display_name, password } = req.body as {
     email?: string;
@@ -48,7 +64,8 @@ router.post("/auth/register", async (req: Request, res: Response): Promise<void>
     return;
   }
 
-  const existing = await db.select({ id: usersTable.id }).from(usersTable).where(eq(usersTable.email, email.toLowerCase())).limit(1);
+  const existing = await db.select({ id: usersTable.id }).from(usersTable)
+    .where(eq(usersTable.email, email.toLowerCase())).limit(1);
   if (existing.length) {
     res.status(409).json({ error: "An account with this email already exists" });
     return;
@@ -58,10 +75,10 @@ router.post("/auth/register", async (req: Request, res: Response): Promise<void>
   const [user] = await db
     .insert(usersTable)
     .values({ email: email.toLowerCase(), display_name, password_hash })
-    .returning({ id: usersTable.id, email: usersTable.email, display_name: usersTable.display_name, created_at: usersTable.created_at });
+    .returning();
 
   const token = makeToken(user.id);
-  res.status(201).json({ token, user: { id: user.id, email: user.email, display_name: user.display_name } });
+  res.status(201).json({ token, user: publicUser(user) });
 });
 
 router.post("/auth/login", async (req: Request, res: Response): Promise<void> => {
@@ -72,7 +89,8 @@ router.post("/auth/login", async (req: Request, res: Response): Promise<void> =>
     return;
   }
 
-  const [user] = await db.select().from(usersTable).where(eq(usersTable.email, email.toLowerCase())).limit(1);
+  const [user] = await db.select().from(usersTable)
+    .where(eq(usersTable.email, email.toLowerCase())).limit(1);
   if (!user) {
     res.status(401).json({ error: "Invalid email or password" });
     return;
@@ -85,7 +103,7 @@ router.post("/auth/login", async (req: Request, res: Response): Promise<void> =>
   }
 
   const token = makeToken(user.id);
-  res.json({ token, user: { id: user.id, email: user.email, display_name: user.display_name } });
+  res.json({ token, user: publicUser(user) });
 });
 
 router.get("/auth/me", async (req: Request, res: Response): Promise<void> => {
@@ -94,7 +112,7 @@ router.get("/auth/me", async (req: Request, res: Response): Promise<void> => {
     res.status(401).json({ error: "Unauthorized" });
     return;
   }
-  res.json({ id: user.id, email: user.email, display_name: user.display_name, created_at: user.created_at });
+  res.json(publicUser(user));
 });
 
 export default router;

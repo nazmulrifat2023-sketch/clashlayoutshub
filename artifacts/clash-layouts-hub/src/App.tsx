@@ -16,6 +16,7 @@ import { AboutPage, ContactPage, NotFoundPage } from "@/pages/StaticPages";
 import { ConsentBanner } from "@/components/ads/ConsentBanner";
 import { LoginPage } from "@/pages/LoginPage";
 import { SignupPage } from "@/pages/SignupPage";
+import { ProfilePage } from "@/pages/ProfilePage";
 import { AdminLayout } from "@/pages/admin/AdminLayout";
 import { AdminDashboard } from "@/pages/admin/AdminDashboard";
 import { AdminBases } from "@/pages/admin/AdminBases";
@@ -79,6 +80,9 @@ function Router() {
       </Route>
       <Route path="/signup">
         <PublicLayout><SignupPage /></PublicLayout>
+      </Route>
+      <Route path="/profile">
+        <PublicLayout><ProfilePage /></PublicLayout>
       </Route>
 
       {/* Admin routes */}

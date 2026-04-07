@@ -4,6 +4,8 @@ export interface AuthUser {
   id: string;
   email: string;
   display_name: string;
+  is_admin: boolean;
+  created_at?: string;
 }
 
 interface AuthContextValue {
@@ -12,6 +14,7 @@ interface AuthContextValue {
   loading: boolean;
   login: (token: string, user: AuthUser) => void;
   logout: () => void;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -31,15 +34,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
   const [loading, setLoading] = useState(true);
 
+  const fetchMe = useCallback(async (t: string) => {
+    const r = await fetch("/api/auth/me", {
+      headers: { Authorization: `Bearer ${t}` },
+    });
+    if (!r.ok) throw new Error("invalid");
+    return r.json() as Promise<AuthUser>;
+  }, []);
+
   useEffect(() => {
     if (!token) { setLoading(false); return; }
-    fetch("/api/auth/me", {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((r) => {
-        if (!r.ok) throw new Error("invalid");
-        return r.json() as Promise<AuthUser>;
-      })
+    fetchMe(token)
       .then((u) => {
         setUser(u);
         localStorage.setItem(USER_KEY, JSON.stringify(u));
@@ -67,8 +72,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }, []);
 
+  const refreshUser = useCallback(async () => {
+    if (!token) return;
+    try {
+      const u = await fetchMe(token);
+      setUser(u);
+      localStorage.setItem(USER_KEY, JSON.stringify(u));
+    } catch {}
+  }, [token, fetchMe]);
+
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, token, loading, login, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

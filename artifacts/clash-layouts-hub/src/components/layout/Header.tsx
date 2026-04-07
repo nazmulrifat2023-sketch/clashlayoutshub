@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import { Menu, X, Shield, Globe, LogOut, User, ChevronDown } from "lucide-react";
+import { Menu, X, Shield, Globe, LogOut, ChevronDown, User } from "lucide-react";
 import { useTranslation, Language } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
+
+const GOLD = "#D4AF37";
 
 export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -89,13 +91,16 @@ export function Header() {
 
             {/* Auth UI */}
             {user ? (
-              /* Logged-in: avatar dropdown */
-              <div className="relative" ref={userMenuRef}>
+              /* Logged-in: avatar + dropdown */
+              <div className="relative hidden sm:block" ref={userMenuRef}>
                 <button
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
-                  className="hidden sm:flex items-center gap-1.5 px-2 py-1.5 rounded-xl hover:bg-muted transition-colors"
+                  className="flex items-center gap-1.5 px-2 py-1.5 rounded-xl hover:bg-muted transition-colors"
                 >
-                  <div className="w-7 h-7 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-xs font-black text-primary">
+                  <div
+                    className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-black text-white"
+                    style={{ backgroundColor: GOLD }}
+                  >
                     {initials}
                   </div>
                   <span className="text-sm font-medium max-w-[90px] truncate">{user.display_name}</span>
@@ -108,6 +113,27 @@ export function Header() {
                       <p className="text-sm font-semibold truncate">{user.display_name}</p>
                       <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                     </div>
+                    <Link
+                      href="/profile"
+                      onClick={() => setUserMenuOpen(false)}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+                    >
+                      <User className="w-4 h-4 text-muted-foreground" />
+                      My Profile
+                    </Link>
+                    {/* Admin link — only for admin users */}
+                    {user.is_admin && (
+                      <Link
+                        href="/admin"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors hover:bg-amber-50"
+                        style={{ color: GOLD }}
+                      >
+                        <Shield className="w-4 h-4" />
+                        Admin Panel
+                      </Link>
+                    )}
+                    <div className="border-t border-border mt-1" />
                     <button
                       onClick={() => { logout(); setUserMenuOpen(false); }}
                       className="w-full flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-red-600 hover:bg-red-50 transition-colors"
@@ -129,21 +155,13 @@ export function Header() {
                 </Link>
                 <Link
                   href="/signup"
-                  className="px-3 py-1.5 text-sm font-bold bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors"
+                  className="px-3 py-1.5 text-sm font-bold text-white rounded-xl hover:opacity-90 transition-opacity"
+                  style={{ backgroundColor: GOLD }}
                 >
                   Sign Up
                 </Link>
               </div>
             )}
-
-            {/* Admin link — small icon only on desktop */}
-            <Link
-              href="/admin"
-              title="Admin"
-              className="hidden sm:inline-flex items-center gap-1 px-2 py-1.5 text-xs font-medium text-muted-foreground border border-border rounded-xl hover:bg-muted transition-colors"
-            >
-              <Shield className="w-3.5 h-3.5" />
-            </Link>
 
             {/* Mobile menu button */}
             <button
@@ -176,15 +194,37 @@ export function Header() {
             <div className="border-t border-border pt-2 mt-2 space-y-1">
               {user ? (
                 <>
-                  <div className="flex items-center gap-2 py-2">
-                    <div className="w-7 h-7 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-xs font-black text-primary">
+                  <div className="flex items-center gap-2.5 py-2">
+                    <div
+                      className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-black text-white shrink-0"
+                      style={{ backgroundColor: GOLD }}
+                    >
                       {initials}
                     </div>
-                    <div>
-                      <p className="text-sm font-semibold">{user.display_name}</p>
-                      <p className="text-xs text-muted-foreground">{user.email}</p>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold truncate">{user.display_name}</p>
+                      <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                     </div>
                   </div>
+                  <Link
+                    href="/profile"
+                    className="flex items-center gap-2 py-2 text-sm font-medium text-foreground"
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    <User className="w-4 h-4" />
+                    My Profile
+                  </Link>
+                  {user.is_admin && (
+                    <Link
+                      href="/admin"
+                      className="flex items-center gap-2 py-2 text-sm font-semibold"
+                      style={{ color: GOLD }}
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      <Shield className="w-4 h-4" />
+                      Admin Panel
+                    </Link>
+                  )}
                   <button
                     onClick={() => { logout(); setMobileOpen(false); }}
                     className="w-full flex items-center gap-2 py-2 text-sm text-red-600"
@@ -204,21 +244,14 @@ export function Header() {
                   </Link>
                   <Link
                     href="/signup"
-                    className="block py-2 text-sm font-bold text-primary"
+                    className="block py-2 text-sm font-bold"
+                    style={{ color: GOLD }}
                     onClick={() => setMobileOpen(false)}
                   >
                     Sign Up Free
                   </Link>
                 </>
               )}
-
-              <Link
-                href="/admin"
-                className="block py-2 text-sm font-medium text-muted-foreground"
-                onClick={() => setMobileOpen(false)}
-              >
-                {t.admin}
-              </Link>
             </div>
 
             {/* Mobile language switcher */}
