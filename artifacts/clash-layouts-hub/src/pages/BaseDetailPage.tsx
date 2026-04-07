@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link } from "wouter";
 import {
   Copy, Star, Shield, ChevronRight, MessageSquare, AlertTriangle,
-  ExternalLink, Activity, ChevronDown, ChevronUp, Flame, Users,
-  TrendingUp, Zap, BookOpen, ArrowRight, Loader2
+  ExternalLink, ChevronDown, ChevronUp, Flame, Users,
+  TrendingUp, Zap, BookOpen, ArrowRight, Loader2, Eye, CheckCircle2,
 } from "lucide-react";
 import { useTranslation } from "@/contexts/LanguageContext";
 import { BaseCard } from "@/components/base/BaseCard";
@@ -25,12 +25,12 @@ function StarRating({ value, onChange }: { value: number; onChange: (v: number) 
   const [hover, setHover] = useState(0);
   return (
     <div className="flex gap-1">
-      {[1,2,3,4,5].map(star => (
+      {[1, 2, 3, 4, 5].map(star => (
         <button key={star} type="button"
           onClick={() => onChange(star)}
           onMouseEnter={() => setHover(star)}
           onMouseLeave={() => setHover(0)}
-          className="transition-transform hover:scale-110">
+          className="transition-transform hover:scale-110 active:scale-95">
           <Star className={`w-6 h-6 ${star <= (hover || value) ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground"}`} />
         </button>
       ))}
@@ -42,19 +42,19 @@ function StarRating({ value, onChange }: { value: number; onChange: (v: number) 
 function FAQItem({ q, a, index }: { q: string; a: string; index: number }) {
   const [open, setOpen] = useState(index === 0);
   return (
-    <div className="border border-border rounded-xl overflow-hidden">
+    <div className="border border-border rounded-xl overflow-hidden bg-white">
       <button
         onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center justify-between px-4 py-3.5 text-sm font-semibold text-left hover:bg-muted/40 transition-colors"
+        className="w-full flex items-center justify-between px-5 py-4 text-sm font-semibold text-left hover:bg-gray-50 transition-colors"
         aria-expanded={open}
       >
-        <span className="pr-4">{q}</span>
+        <span className="pr-4 leading-snug">{q}</span>
         {open
           ? <ChevronUp className="w-4 h-4 text-muted-foreground flex-shrink-0" />
           : <ChevronDown className="w-4 h-4 text-muted-foreground flex-shrink-0" />}
       </button>
       {open && (
-        <div className="px-4 pb-4 pt-2 text-sm text-muted-foreground leading-relaxed border-t border-border bg-muted/20">
+        <div className="px-5 pb-5 pt-3 text-sm text-muted-foreground leading-relaxed border-t border-border/50 bg-gray-50/60">
           {a}
         </div>
       )}
@@ -185,7 +185,6 @@ function getFAQs(baseType: string, th: number): { q: string; a: string }[] {
 /* ─── JSON-LD Schema ─── */
 function JsonLdSchema({ base, url, faqs }: { base: any; url: string; faqs: { q: string; a: string }[] }) {
   const origin = typeof window !== "undefined" ? window.location.origin : "";
-
   const breadcrumb = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -195,7 +194,6 @@ function JsonLdSchema({ base, url, faqs }: { base: any; url: string; faqs: { q: 
       { "@type": "ListItem", position: 3, name: base.title, item: url },
     ],
   };
-
   const faqSchema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -205,7 +203,6 @@ function JsonLdSchema({ base, url, faqs }: { base: any; url: string; faqs: { q: 
       acceptedAnswer: { "@type": "Answer", text: f.a },
     })),
   };
-
   const softwareApp = base.rating_count > 0 ? {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
@@ -223,7 +220,6 @@ function JsonLdSchema({ base, url, faqs }: { base: any; url: string; faqs: { q: 
       worstRating: 1,
     },
   } : null;
-
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
@@ -236,56 +232,70 @@ function JsonLdSchema({ base, url, faqs }: { base: any; url: string; faqs: { q: 
 }
 
 /* ─── AI Analysis Section ─── */
-function AIAnalysisSection({ baseId, baseTitle }: { baseId: string; baseTitle: string }) {
+function AIAnalysisSection({ baseId }: { baseId: string }) {
   const { data, isLoading, isError } = useGetBaseAnalysis(baseId);
   const paragraphs = data?.analysis?.split("\n\n").filter(Boolean) ?? [];
 
   if (isLoading) {
     return (
-      <div className="mb-8 bg-gradient-to-r from-primary/5 to-secondary/5 border border-primary/15 rounded-2xl p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <Zap className="w-5 h-5 text-primary animate-pulse" />
-          <h2 className="text-lg font-bold">About This Base</h2>
-          <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-semibold">AI Analysis</span>
+      <div className="mb-8 rounded-2xl border border-amber-100 bg-gradient-to-br from-amber-50 to-orange-50 p-6">
+        <div className="flex items-center gap-2.5 mb-5">
+          <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
+            <Zap className="w-4 h-4 text-amber-600 animate-pulse" />
+          </div>
+          <div>
+            <h2 className="font-black text-gray-900 text-base">Expert Base Analysis</h2>
+            <p className="text-xs text-amber-600">AI Strategist • Generating…</p>
+          </div>
         </div>
         <div className="space-y-3">
-          {[1,2,3].map(i => (
+          {[1, 2, 3].map(i => (
             <div key={i} className="animate-pulse space-y-2">
-              <div className="h-3 bg-muted rounded w-full" />
-              <div className="h-3 bg-muted rounded w-5/6" />
-              <div className="h-3 bg-muted rounded w-4/5" />
+              <div className="h-3 bg-amber-100 rounded w-full" />
+              <div className="h-3 bg-amber-100 rounded w-5/6" />
+              <div className="h-3 bg-amber-100 rounded w-4/5" />
             </div>
           ))}
         </div>
-        <p className="text-xs text-muted-foreground mt-4 flex items-center gap-1.5">
+        <p className="text-xs text-amber-700/70 mt-4 flex items-center gap-1.5">
           <Loader2 className="w-3.5 h-3.5 animate-spin" />
-          Generating AI analysis by our Pro CoC Strategist...
+          Analysing layout by our Pro CoC Strategist…
         </p>
       </div>
     );
   }
 
-  if (isError || !data?.analysis) {
-    return null;
-  }
+  if (isError || !data?.analysis) return null;
 
   return (
-    <div className="mb-8 bg-gradient-to-br from-primary/5 via-white to-secondary/5 border border-primary/15 rounded-2xl p-6">
-      <div className="flex items-center gap-2 mb-4">
-        <Zap className="w-5 h-5 text-primary" />
-        <h2 className="text-lg font-bold">About This Base</h2>
-        <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ backgroundColor: `${GOLD}20`, color: GOLD }}>
+    <div className="mb-8 rounded-2xl border border-amber-100 bg-gradient-to-br from-amber-50/60 to-white overflow-hidden">
+      <div className="flex items-center gap-3 px-6 py-4 border-b border-amber-100 bg-amber-50/80">
+        <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${GOLD}25` }}>
+          <Zap className="w-4 h-4" style={{ color: GOLD }} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <h2 className="font-black text-gray-900 text-sm">Expert Base Analysis</h2>
+          <p className="text-xs text-gray-500">Pro CoC Strategist · AI-generated · Expert-verified</p>
+        </div>
+        <span className="shrink-0 text-xs font-bold px-2.5 py-1 rounded-full" style={{ backgroundColor: `${GOLD}20`, color: GOLD }}>
           Pro Analysis
         </span>
-        {data.cached && (
-          <span className="text-xs text-muted-foreground">· Expert-verified</span>
-        )}
       </div>
-      <div className="space-y-4 text-sm text-muted-foreground leading-[1.8]">
+      <div className="px-6 py-5 space-y-4 text-sm text-gray-600 leading-[1.85]">
         {paragraphs.map((para, i) => (
           <p key={i}>{para}</p>
         ))}
       </div>
+    </div>
+  );
+}
+
+/* ─── Quick Stat Pill ─── */
+function StatPill({ label, value, color }: { label: string; value: string; color?: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center px-3 py-2.5 bg-white rounded-xl border border-gray-100 shadow-sm min-w-[72px]">
+      <span className={`text-base font-black leading-tight ${color ?? "text-gray-900"}`}>{value}</span>
+      <span className="text-[10px] text-gray-400 font-medium mt-0.5 whitespace-nowrap">{label}</span>
     </div>
   );
 }
@@ -310,15 +320,11 @@ export function BaseDetailPage() {
   /* SEO: dynamic title + meta */
   useEffect(() => {
     if (!base) return;
-    const title = `Best TH${base.townhall} ${base.base_type} Base Link 2026 - ${base.title} | ClashLayoutsHub`;
+    const title = `Best TH${base.townhall} ${base.base_type} Base Link 2026 — ${base.title} | ClashLayoutsHub`;
     document.title = title;
     let meta = document.querySelector('meta[name="description"]') as HTMLMetaElement | null;
-    if (!meta) {
-      meta = document.createElement("meta");
-      meta.name = "description";
-      document.head.appendChild(meta);
-    }
-    meta.content = `Download the best TH${base.townhall} ${base.base_type} base link 2026. ${base.title} — ${base.win_rate}% win rate, tested by ${(base.copies ?? 0).toLocaleString()} players. Copy layout now!`;
+    if (!meta) { meta = document.createElement("meta"); meta.name = "description"; document.head.appendChild(meta); }
+    meta.content = `Download the best TH${base.townhall} ${base.base_type} base link 2026. ${base.title} — ${base.win_rate}% win rate, tested by ${(base.copies ?? 0).toLocaleString()} players. One-click copy layout!`;
   }, [base]);
 
   /* Track view + recently viewed */
@@ -341,7 +347,7 @@ export function BaseDetailPage() {
     if (!base) return;
     incrementCopy.mutate({ id: base.id });
     window.open(base.layout_link, "_blank", "noopener,noreferrer");
-    toast.success("Layout copied! Opening in Clash of Clans...");
+    toast.success("Layout copied! Opening in Clash of Clans…");
   }
 
   async function onSubmitComment(data: { user_name: string; content: string }) {
@@ -350,7 +356,7 @@ export function BaseDetailPage() {
       { baseId: base.id, data: { ...data, rating: rating || undefined } },
       {
         onSuccess: () => {
-          toast.success("Comment added!");
+          toast.success("Comment posted!");
           reset();
           setRating(0);
           refetchComments();
@@ -359,16 +365,25 @@ export function BaseDetailPage() {
     );
   }
 
-  /* Loading skeleton */
+  /* ── Loading skeleton ── */
   if (isLoading) {
     return (
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="animate-pulse space-y-4">
           <div className="h-4 bg-muted rounded w-1/3" />
-          <div className="h-80 bg-muted rounded-xl" />
-          <div className="h-8 bg-muted rounded w-1/2" />
-          <div className="h-4 bg-muted rounded w-full" />
-          <div className="h-4 bg-muted rounded w-5/6" />
+          <div className="h-8 bg-muted rounded w-2/3" />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-4">
+              <div className="aspect-video bg-muted rounded-2xl" />
+              <div className="h-4 bg-muted rounded w-full" />
+              <div className="h-4 bg-muted rounded w-5/6" />
+              <div className="h-32 bg-muted rounded-xl" />
+            </div>
+            <div className="space-y-4">
+              <div className="h-36 bg-muted rounded-2xl" />
+              <div className="h-48 bg-muted rounded-2xl" />
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -377,7 +392,7 @@ export function BaseDetailPage() {
   if (!base) {
     return (
       <div className="max-w-6xl mx-auto px-4 py-16 text-center">
-        <div className="text-6xl font-black text-muted-foreground/20 mb-4">404</div>
+        <div className="text-8xl font-black text-muted-foreground/20 mb-4">404</div>
         <h1 className="text-2xl font-bold mb-4">Base Not Found</h1>
         <p className="text-muted-foreground mb-6">The base you're looking for doesn't exist or has been removed.</p>
         <Link href="/" className="px-5 py-2.5 bg-primary text-white rounded-xl font-semibold hover:bg-primary/90 transition-colors">
@@ -392,379 +407,460 @@ export function BaseDetailPage() {
   const healthBg = healthScore >= 70 ? "bg-green-50 border-green-200" : healthScore >= 40 ? "bg-yellow-50 border-yellow-200" : "bg-red-50 border-red-200";
   const currentUrl = typeof window !== "undefined" ? window.location.href : "";
   const faqs = getFAQs(base.base_type ?? "", base.townhall ?? 0);
-
-  const altText = `Best TH${base.townhall} ${base.base_type} Base Layout 2026 - ${base.title} Clash of Clans`;
-
-  /* TH exploration: adjacent levels */
+  const altText = `Best TH${base.townhall} ${base.base_type} Base Layout 2026 — ${base.title} Clash of Clans`;
   const exploreTH = TH_LEVELS.filter(l => Math.abs(l - (base.townhall ?? 10)) <= 2 && l !== base.townhall);
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
-      {/* JSON-LD */}
+    <div className="bg-gray-50 min-h-screen">
       <JsonLdSchema base={base} url={currentUrl} faqs={faqs} />
 
-      {/* Breadcrumb */}
-      <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm text-muted-foreground mb-6 flex-wrap">
-        <Link href="/" className="hover:text-primary transition-colors">Home</Link>
-        <ChevronRight className="w-3.5 h-3.5" />
-        <Link href={`/th/${base.townhall}`} className="hover:text-primary transition-colors">
-          TH{base.townhall} Bases
-        </Link>
-        <ChevronRight className="w-3.5 h-3.5" />
-        <span className="text-foreground font-medium truncate max-w-[220px]">{base.title}</span>
-      </nav>
+      {/* ── Hero banner ── */}
+      <div className="bg-white border-b border-gray-100">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
+          {/* Breadcrumb */}
+          <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-gray-400 mb-4 flex-wrap">
+            <Link href="/" className="hover:text-primary transition-colors">Home</Link>
+            <ChevronRight className="w-3 h-3" />
+            <Link href={`/th/${base.townhall}`} className="hover:text-primary transition-colors">TH{base.townhall} Bases</Link>
+            <ChevronRight className="w-3 h-3" />
+            <span className="text-gray-600 font-medium truncate max-w-[200px]">{base.title}</span>
+          </nav>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* ── Main column ── */}
-        <div className="lg:col-span-2">
+          <div className="flex flex-wrap items-center gap-2 mb-3">
+            <span className="th-badge text-xs">TH{base.townhall}</span>
+            <span className="px-2.5 py-0.5 bg-secondary text-white rounded-full text-xs font-bold">{base.base_type}</span>
+            {base.difficulty && (
+              <span className="px-2.5 py-0.5 bg-gray-100 text-gray-600 rounded-full text-xs font-semibold">{base.difficulty}</span>
+            )}
+            <span className="flex items-center gap-1 text-xs text-gray-400 ml-auto">
+              <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+              Community verified
+            </span>
+          </div>
 
-          {/* Page title */}
-          <h1 className="text-2xl sm:text-3xl font-black mb-5 leading-tight">
+          <h1 className="text-2xl sm:text-3xl font-black text-gray-900 leading-tight">
             Best TH{base.townhall} {base.base_type} Base 2026 — {base.title}
           </h1>
-
-          {/* Base image */}
-          <div className="rounded-2xl overflow-hidden border border-border mb-4 relative shadow-sm">
-            {base.image_url ? (
-              <img
-                src={base.image_url}
-                alt={altText}
-                className="w-full object-cover"
-                loading="eager"
-                style={{ touchAction: "pinch-zoom" }}
-              />
-            ) : (
-              <div className="aspect-[4/3] bg-muted flex items-center justify-center">
-                <Shield className="w-16 h-16 text-muted-foreground/30" />
-              </div>
-            )}
-            <div className="absolute top-3 left-3 flex gap-2">
-              <span className="th-badge">TH{base.townhall}</span>
-              <span className="px-2 py-0.5 bg-secondary text-white rounded-full text-xs font-semibold">
-                {base.base_type}
-              </span>
-            </div>
-          </div>
-
-          {/* 🔥 Live copy counter banner */}
-          {todayCopies && todayCopies.todayCopies > 0 && (
-            <div className="flex items-center gap-3 rounded-xl px-4 py-3 mb-5 border"
-              style={{ backgroundColor: "#FFF8E7", borderColor: `${GOLD}40` }}>
-              <Flame className="w-5 h-5 flex-shrink-0" style={{ color: GOLD }} />
-              <p className="text-sm font-semibold" style={{ color: "#92640F" }}>
-                🔥 Verified: <span className="font-black text-base">{todayCopies.todayCopies}</span>{" "}
-                players have used this layout today
-              </p>
-            </div>
-          )}
-
-          {/* Ad unit — below image (mobile-safe fixed height) */}
-          <AdUnit slot="base-detail-top" className="mb-6" />
-
-          {/* ── AI Analysis Section ── */}
-          <AIAnalysisSection baseId={base.id} baseTitle={base.title} />
-
-          {/* Key Features */}
-          {base.key_features && base.key_features.length > 0 && (
-            <div className="mb-7">
-              <h3 className="text-base font-bold mb-3 flex items-center gap-2">
-                <Shield className="w-4 h-4 text-primary" />
-                {t.keyFeatures}
-              </h3>
-              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {base.key_features.map((feat, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm bg-muted/40 rounded-lg px-3 py-2.5">
-                    <Shield className="w-3.5 h-3.5 text-primary flex-shrink-0 mt-0.5" />
-                    <span>{feat}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {/* Best Against */}
-          {base.best_against && base.best_against.length > 0 && (
-            <div className="mb-7">
-              <h3 className="text-base font-bold mb-3 flex items-center gap-2">
-                <Zap className="w-4 h-4 text-destructive" />
-                {t.bestAgainst}
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {base.best_against.map((troop, i) => (
-                  <span key={i} className="px-3 py-1.5 bg-destructive/10 text-destructive rounded-full text-xs font-semibold border border-destructive/20">
-                    ⚔️ {troop}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Mid-content ad (content-to-ad ratio safe) */}
-          <AdUnit slot="base-detail-mid" className="mb-7" />
-
-          {/* ── FAQ Section ── */}
-          <div className="mb-10">
-            <div className="flex items-center gap-2 mb-4">
-              <BookOpen className="w-5 h-5 text-primary" />
-              <h2 className="text-xl font-bold">Frequently Asked Questions</h2>
-            </div>
-            <div className="space-y-2.5">
-              {faqs.map((faq, i) => (
-                <FAQItem key={i} q={faq.q} a={faq.a} index={i} />
-              ))}
-            </div>
-          </div>
-
-          {/* ── Comments ── */}
-          <div className="mt-4">
-            <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
-              <MessageSquare className="w-5 h-5" />
-              {t.comments} ({comments?.length ?? 0})
-            </h2>
-
-            <form onSubmit={handleSubmit(onSubmitComment)} className="bg-white border border-border rounded-xl p-5 mb-6">
-              <h3 className="font-semibold mb-4">{t.leaveComment}</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                <input
-                  {...register("user_name", { required: true })}
-                  placeholder={t.yourName}
-                  className="px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                />
-                <div>
-                  <label className="block text-xs text-muted-foreground mb-1.5">{t.rating} (optional)</label>
-                  <StarRating value={rating} onChange={setRating} />
-                </div>
-              </div>
-              <textarea
-                {...register("content", { required: true })}
-                placeholder={t.yourComment}
-                rows={3}
-                className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none mb-4"
-              />
-              <button
-                type="submit"
-                disabled={addComment.isPending}
-                className="px-5 py-2.5 bg-primary text-white rounded-lg text-sm font-bold hover:bg-primary/90 transition-colors disabled:opacity-50"
-              >
-                {addComment.isPending ? "Posting..." : t.submitComment}
-              </button>
-            </form>
-
-            <div className="space-y-4">
-              {comments?.map(comment => (
-                <div key={comment.id} className="bg-white border border-border rounded-xl p-4">
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <span className="font-semibold text-sm">{comment.user_name}</span>
-                      <span className="text-xs text-muted-foreground ml-2">
-                        {new Date(comment.created_at || "").toLocaleDateString()}
-                      </span>
-                    </div>
-                    {comment.rating && (
-                      <div className="flex gap-0.5">
-                        {Array.from({ length: 5 }).map((_, i) => (
-                          <Star key={i} className={`w-3.5 h-3.5 ${i < (comment.rating ?? 0) ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground/30"}`} />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  <p className="text-sm text-muted-foreground">{comment.content}</p>
-                </div>
-              ))}
-              {!comments?.length && (
-                <p className="text-center text-muted-foreground text-sm py-8">
-                  No comments yet. Be the first to share your experience!
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* ── Sidebar ── */}
-        <div className="lg:col-span-1">
-          <div className="sticky top-20 space-y-4">
-
-            {/* Copy button */}
-            <div className="bg-white border border-border rounded-2xl p-4 space-y-3 shadow-sm">
-              <button
-                onClick={handleCopy}
-                className="w-full flex items-center justify-center gap-2 py-3.5 bg-primary hover:bg-primary/90 text-white rounded-xl font-black text-sm transition-colors shadow-md"
-              >
-                <Copy className="w-4 h-4" />
-                {t.copyLayout}
-              </button>
-              <a
-                href="https://discord.gg/clashoflayouts"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full flex items-center justify-center gap-2 py-2.5 bg-[#5865F2] hover:bg-[#4752C4] text-white rounded-xl font-medium text-sm transition-colors"
-              >
-                <MessageSquare className="w-4 h-4" />
-                {t.discord}
-              </a>
-              <button
-                onClick={() => setReportOpen(true)}
-                className="w-full flex items-center justify-center gap-1.5 py-2 border border-border hover:border-destructive/50 hover:text-destructive text-muted-foreground rounded-xl text-xs font-medium transition-colors"
-              >
-                <AlertTriangle className="w-3.5 h-3.5" />
-                {t.reportIssue}
-              </button>
-            </div>
-
-            {/* Today copies card */}
-            {todayCopies && todayCopies.todayCopies > 0 && (
-              <div className="rounded-2xl p-4 border" style={{ backgroundColor: "#FFFBEB", borderColor: `${GOLD}35` }}>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                    style={{ backgroundColor: `${GOLD}20` }}>
-                    <Flame className="w-5 h-5" style={{ color: GOLD }} />
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium" style={{ color: "#92640F" }}>Copied today</p>
-                    <p className="font-black text-xl leading-tight" style={{ color: GOLD }}>
-                      {todayCopies.todayCopies}
-                      <span className="text-xs font-medium text-muted-foreground ml-1">players</span>
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Base stats */}
-            <div className="bg-white border border-border rounded-2xl p-4">
-              <h3 className="font-bold mb-4 text-sm flex items-center gap-1.5">
-                <TrendingUp className="w-4 h-4 text-primary" />
-                Base Details
-              </h3>
-              <dl className="space-y-2.5">
-                {[
-                  { label: "Town Hall", value: `TH${base.townhall}` },
-                  { label: "Base Type", value: base.base_type },
-                  { label: "Difficulty", value: base.difficulty || "Medium" },
-                  { label: t.winRate, value: `${base.win_rate ?? 80}%` },
-                  {
-                    label: t.health,
-                    value: (
-                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold border ${healthBg} ${healthColor}`}>
-                        {healthScore}/100
-                      </span>
-                    ),
-                  },
-                  { label: t.views, value: (base.views ?? 0).toLocaleString() },
-                  { label: t.copies, value: (base.copies ?? 0).toLocaleString() },
-                  {
-                    label: "Rating",
-                    value: base.rating_count
-                      ? (
-                        <span className="flex items-center gap-1">
-                          <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
-                          {Number(base.rating_avg).toFixed(1)}/5 ({base.rating_count})
-                        </span>
-                      )
-                      : "Not rated yet",
-                  },
-                ].map(({ label, value }) => (
-                  <div key={label} className="flex justify-between items-center text-sm">
-                    <dt className="text-muted-foreground">{label}</dt>
-                    <dd className="font-medium text-right">{value}</dd>
-                  </div>
-                ))}
-              </dl>
-            </div>
-
-            {/* Layout link */}
-            <div className="bg-white border border-border rounded-2xl p-4">
-              <h3 className="font-bold mb-2 text-sm">Layout Link</h3>
-              <a
-                href={base.layout_link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-primary break-all flex items-start gap-1 hover:underline"
-              >
-                <ExternalLink className="w-3 h-3 flex-shrink-0 mt-0.5" />
-                {base.layout_link.substring(0, 50)}...
-              </a>
-            </div>
-
-            {/* Sidebar ad */}
-            <AdUnit slot="base-detail-sidebar" />
-          </div>
         </div>
       </div>
 
-      {/* ── Similar Bases (6) ── */}
-      {similar && similar.length > 0 && (
-        <section className="mt-14" aria-labelledby="similar-heading">
-          <div className="flex items-center justify-between mb-2">
-            <div>
-              <h2 id="similar-heading" className="text-xl font-bold flex items-center gap-2">
-                <Users className="w-5 h-5 text-primary" />
-                {t.similarBases}
-              </h2>
-              <p className="text-sm text-muted-foreground mt-0.5">
-                More TH{base.townhall} {base.base_type} layouts tested by our community
-              </p>
-            </div>
-            <Link href={`/th/${base.townhall}`}
-              className="hidden sm:flex items-center gap-1 text-sm font-semibold text-primary hover:underline">
-              View all <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">
-            {similar.slice(0, 6).map(b => (
-              <BaseCard key={b.id} base={b} />
-            ))}
-          </div>
-        </section>
-      )}
+      {/* ── Main content ── */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
 
-      {/* ── Internal linking: Explore TH levels ── */}
-      <section className="mt-14 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-2xl border border-primary/10 p-6"
-        aria-labelledby="explore-heading">
-        <h2 id="explore-heading" className="text-lg font-bold mb-1 flex items-center gap-2">
-          <Shield className="w-5 h-5 text-primary" />
-          Explore More TH{base.townhall} Bases
-        </h2>
-        <p className="text-sm text-muted-foreground mb-4">
-          Discover the full collection of verified Town Hall {base.townhall} layouts for every strategy.
-        </p>
-        <div className="flex flex-wrap gap-2 mb-5">
-          {["War", "Farming", "Hybrid", "Trophy", "Anti 3 Star", "Legend League"].map(type => (
-            <Link
-              key={type}
-              href={`/th/${base.townhall}?base_type=${encodeURIComponent(type)}`}
-              className="px-3 py-1.5 text-xs font-semibold rounded-xl border border-primary/20 text-primary hover:bg-primary hover:text-white transition-all"
-            >
-              {type} Bases
-            </Link>
-          ))}
+          {/* ════ Main column ════ */}
+          <article className="lg:col-span-2 space-y-6">
+
+            {/* Base image card */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+              <div className="relative">
+                {base.image_url ? (
+                  <img
+                    src={base.image_url}
+                    alt={altText}
+                    className="w-full object-cover"
+                    loading="eager"
+                    style={{ touchAction: "pinch-zoom" }}
+                  />
+                ) : (
+                  <div className="aspect-[16/9] bg-gray-100 flex items-center justify-center">
+                    <Shield className="w-16 h-16 text-gray-300" />
+                  </div>
+                )}
+                {/* Overlay gradient */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
+                {/* Live badge */}
+                {todayCopies && todayCopies.todayCopies > 0 && (
+                  <div className="absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-sm border border-white/10">
+                    <Flame className="w-3.5 h-3.5" style={{ color: GOLD }} />
+                    <span className="text-xs font-bold text-white">{todayCopies.todayCopies} today</span>
+                  </div>
+                )}
+                {/* Bottom stats bar */}
+                <div className="absolute bottom-0 left-0 right-0 px-4 py-3 flex items-center gap-3 flex-wrap">
+                  <div className="flex items-center gap-1.5 text-white text-xs font-semibold">
+                    <Eye className="w-3.5 h-3.5 opacity-80" />
+                    {(base.views ?? 0).toLocaleString()} views
+                  </div>
+                  <div className="flex items-center gap-1.5 text-white text-xs font-semibold">
+                    <Copy className="w-3.5 h-3.5 opacity-80" />
+                    {(base.copies ?? 0).toLocaleString()} copies
+                  </div>
+                  {base.rating_count > 0 && (
+                    <div className="flex items-center gap-1 text-white text-xs font-semibold ml-auto">
+                      <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
+                      {Number(base.rating_avg).toFixed(1)} / 5
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Quick stats row */}
+              <div className="px-4 py-3 bg-gray-50 border-t border-gray-100 flex items-center gap-2 overflow-x-auto scrollbar-hide">
+                <StatPill label="Win Rate" value={`${base.win_rate ?? 80}%`} color="text-emerald-600" />
+                <StatPill
+                  label="Health"
+                  value={`${healthScore}/100`}
+                  color={healthScore >= 70 ? "text-green-600" : healthScore >= 40 ? "text-yellow-600" : "text-red-600"}
+                />
+                <StatPill label="Copies" value={(base.copies ?? 0).toLocaleString()} />
+                <StatPill label="Views" value={(base.views ?? 0).toLocaleString()} />
+                {base.rating_count > 0 && (
+                  <StatPill label="Rating" value={`★ ${Number(base.rating_avg).toFixed(1)}`} color="text-amber-500" />
+                )}
+              </div>
+            </div>
+
+            {/* 🔥 Live copy banner */}
+            {todayCopies && todayCopies.todayCopies > 0 && (
+              <div className="flex items-center gap-3 rounded-xl px-4 py-3 border"
+                style={{ backgroundColor: "#FFF8E7", borderColor: `${GOLD}50` }}>
+                <Flame className="w-5 h-5 flex-shrink-0" style={{ color: GOLD }} />
+                <p className="text-sm font-semibold" style={{ color: "#92640F" }}>
+                  🔥 <span className="font-black text-base">{todayCopies.todayCopies}</span> players copied this layout today
+                </p>
+              </div>
+            )}
+
+            {/* Ad unit — below image */}
+            <AdUnit slot="base-detail-top" />
+
+            {/* Mobile-only: Copy button */}
+            <div className="lg:hidden">
+              <button
+                onClick={handleCopy}
+                className="w-full flex items-center justify-center gap-2.5 py-4 rounded-xl font-black text-white text-base shadow-lg active:scale-95 transition-all"
+                style={{ backgroundColor: GOLD }}
+              >
+                <Copy className="w-5 h-5" />
+                Copy Layout to Clash of Clans
+              </button>
+            </div>
+
+            {/* AI Analysis */}
+            <AIAnalysisSection baseId={base.id} />
+
+            {/* Key Features */}
+            {base.key_features && base.key_features.length > 0 && (
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                <h3 className="text-sm font-bold mb-4 flex items-center gap-2 text-gray-900">
+                  <Shield className="w-4 h-4 text-primary" />
+                  {t.keyFeatures}
+                </h3>
+                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {base.key_features.map((feat, i) => (
+                    <li key={i} className="flex items-start gap-2.5 text-sm bg-gray-50 rounded-xl px-3.5 py-3 border border-gray-100">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 font-medium">{feat}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Best Against */}
+            {base.best_against && base.best_against.length > 0 && (
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                <h3 className="text-sm font-bold mb-4 flex items-center gap-2 text-gray-900">
+                  <Zap className="w-4 h-4 text-red-500" />
+                  {t.bestAgainst}
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {base.best_against.map((troop, i) => (
+                    <span key={i} className="px-3.5 py-1.5 bg-red-50 text-red-600 border border-red-100 rounded-full text-xs font-bold">
+                      ⚔️ {troop}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Mid ad */}
+            <AdUnit slot="base-detail-mid" />
+
+            {/* FAQ Section */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+              <div className="flex items-center gap-2.5 mb-5">
+                <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
+                  <BookOpen className="w-4 h-4 text-primary" />
+                </div>
+                <h2 className="text-lg font-black text-gray-900">Frequently Asked Questions</h2>
+              </div>
+              <div className="space-y-2.5">
+                {faqs.map((faq, i) => (
+                  <FAQItem key={i} q={faq.q} a={faq.a} index={i} />
+                ))}
+              </div>
+            </div>
+
+            {/* Comments Section */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+              <h2 className="text-lg font-black text-gray-900 mb-5 flex items-center gap-2">
+                <MessageSquare className="w-5 h-5 text-primary" />
+                {t.comments}
+                <span className="ml-1 text-sm font-semibold text-gray-400">({comments?.length ?? 0})</span>
+              </h2>
+
+              {/* Comment form */}
+              <form onSubmit={handleSubmit(onSubmitComment)} className="bg-gray-50 border border-gray-100 rounded-xl p-4 mb-5">
+                <h3 className="font-bold text-sm text-gray-800 mb-4">{t.leaveComment}</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                  <input
+                    {...register("user_name", { required: true })}
+                    placeholder={t.yourName}
+                    className="px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                  />
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1.5">{t.rating} (optional)</label>
+                    <StarRating value={rating} onChange={setRating} />
+                  </div>
+                </div>
+                <textarea
+                  {...register("content", { required: true })}
+                  placeholder={t.yourComment}
+                  rows={3}
+                  className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none mb-3 transition-all"
+                />
+                <button
+                  type="submit"
+                  disabled={addComment.isPending}
+                  className="px-5 py-2.5 bg-primary hover:bg-primary/90 text-white rounded-xl text-sm font-bold transition-colors disabled:opacity-50 active:scale-95"
+                >
+                  {addComment.isPending ? "Posting…" : t.submitComment}
+                </button>
+              </form>
+
+              {/* Comment list */}
+              <div className="space-y-3">
+                {comments?.map(comment => (
+                  <div key={comment.id} className="bg-gray-50 border border-gray-100 rounded-xl p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <span className="font-bold text-sm text-gray-900">{comment.user_name}</span>
+                        <span className="text-xs text-gray-400 ml-2">
+                          {new Date(comment.created_at || "").toLocaleDateString()}
+                        </span>
+                      </div>
+                      {comment.rating && (
+                        <div className="flex gap-0.5">
+                          {Array.from({ length: 5 }).map((_, i) => (
+                            <Star key={i} className={`w-3.5 h-3.5 ${i < (comment.rating ?? 0) ? "fill-yellow-400 text-yellow-400" : "text-gray-200"}`} />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-600 leading-relaxed">{comment.content}</p>
+                  </div>
+                ))}
+                {!comments?.length && (
+                  <p className="text-center text-gray-400 text-sm py-8">
+                    No comments yet — be the first to share your experience!
+                  </p>
+                )}
+              </div>
+            </div>
+          </article>
+
+          {/* ════ Sidebar ════ */}
+          <aside className="lg:col-span-1 hidden lg:block">
+            <div className="sticky top-20 space-y-4">
+
+              {/* Primary CTA */}
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-3">
+                <button
+                  onClick={handleCopy}
+                  className="w-full flex items-center justify-center gap-2.5 py-4 rounded-xl font-black text-white text-sm shadow-md active:scale-95 transition-all"
+                  style={{ background: `linear-gradient(135deg, ${GOLD}, #B8952E)` }}
+                >
+                  <Copy className="w-4 h-4" />
+                  {t.copyLayout}
+                </button>
+                <a
+                  href="https://discord.gg/clashoflayouts"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full flex items-center justify-center gap-2 py-2.5 bg-[#5865F2] hover:bg-[#4752C4] text-white rounded-xl font-semibold text-sm transition-colors active:scale-95"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  {t.discord}
+                </a>
+                <button
+                  onClick={() => setReportOpen(true)}
+                  className="w-full flex items-center justify-center gap-1.5 py-2 border border-gray-200 hover:border-red-300 hover:text-red-500 text-gray-400 rounded-xl text-xs font-medium transition-colors"
+                >
+                  <AlertTriangle className="w-3.5 h-3.5" />
+                  {t.reportIssue}
+                </button>
+              </div>
+
+              {/* Today copies */}
+              {todayCopies && todayCopies.todayCopies > 0 && (
+                <div className="rounded-2xl p-4 border" style={{ backgroundColor: "#FFFBEB", borderColor: `${GOLD}35` }}>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                      style={{ backgroundColor: `${GOLD}20` }}>
+                      <Flame className="w-5 h-5" style={{ color: GOLD }} />
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium" style={{ color: "#92640F" }}>Copied today</p>
+                      <p className="font-black text-xl leading-tight" style={{ color: GOLD }}>
+                        {todayCopies.todayCopies}
+                        <span className="text-xs font-medium text-gray-400 ml-1">players</span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Base stats */}
+              <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+                <h3 className="font-bold mb-4 text-sm flex items-center gap-2 text-gray-900">
+                  <TrendingUp className="w-4 h-4 text-primary" />
+                  Base Details
+                </h3>
+                <dl className="space-y-3">
+                  {[
+                    { label: "Town Hall", value: `TH${base.townhall}` },
+                    { label: "Base Type", value: base.base_type },
+                    { label: "Difficulty", value: base.difficulty || "Medium" },
+                    { label: t.winRate, value: `${base.win_rate ?? 80}%` },
+                    {
+                      label: t.health,
+                      value: (
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold border ${healthBg} ${healthColor}`}>
+                          {healthScore}/100
+                        </span>
+                      ),
+                    },
+                    { label: t.views, value: (base.views ?? 0).toLocaleString() },
+                    { label: t.copies, value: (base.copies ?? 0).toLocaleString() },
+                    {
+                      label: "Rating",
+                      value: base.rating_count
+                        ? (
+                          <span className="flex items-center gap-1">
+                            <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
+                            {Number(base.rating_avg).toFixed(1)}/5
+                            <span className="text-xs text-gray-400">({base.rating_count})</span>
+                          </span>
+                        )
+                        : <span className="text-gray-400 text-xs">Not rated yet</span>,
+                    },
+                  ].map(({ label, value }) => (
+                    <div key={label} className="flex justify-between items-center text-sm pb-3 border-b border-gray-50 last:pb-0 last:border-0">
+                      <dt className="text-gray-400 font-medium">{label}</dt>
+                      <dd className="font-semibold text-gray-900 text-right">{value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+
+              {/* Layout link */}
+              <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+                <h3 className="font-bold mb-2 text-sm text-gray-900">Layout Link</h3>
+                <a
+                  href={base.layout_link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-primary break-all flex items-start gap-1.5 hover:underline"
+                >
+                  <ExternalLink className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+                  {base.layout_link.substring(0, 50)}…
+                </a>
+              </div>
+
+              {/* Sidebar ad */}
+              <AdUnit slot="base-detail-sidebar" />
+            </div>
+          </aside>
         </div>
 
-        {exploreTH.length > 0 && (
-          <>
-            <div className="h-px bg-border mb-4" />
-            <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">
-              Browse other Town Hall levels
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {TH_LEVELS.map(th => (
-                <Link
-                  key={th}
-                  href={`/th/${th}`}
-                  className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
-                    th === base.townhall
-                      ? "text-white"
-                      : "bg-white border border-border text-muted-foreground hover:border-primary hover:text-primary"
-                  }`}
-                  style={th === base.townhall ? { backgroundColor: GOLD } : {}}
-                >
-                  TH{th}
-                </Link>
+        {/* ── Similar Bases ── */}
+        {similar && similar.length > 0 && (
+          <section className="mt-12" aria-labelledby="similar-heading">
+            <div className="flex items-center justify-between mb-1">
+              <div>
+                <h2 id="similar-heading" className="text-xl font-black text-gray-900 flex items-center gap-2">
+                  <Users className="w-5 h-5 text-primary" />
+                  {t.similarBases}
+                </h2>
+                <p className="text-sm text-gray-400 mt-0.5">
+                  More TH{base.townhall} {base.base_type} layouts tested by our community
+                </p>
+              </div>
+              <Link href={`/th/${base.townhall}`}
+                className="hidden sm:flex items-center gap-1 text-sm font-semibold text-primary hover:underline">
+                View all <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">
+              {similar.slice(0, 6).map(b => (
+                <BaseCard key={b.id} base={b} />
               ))}
             </div>
-          </>
+          </section>
         )}
-      </section>
+
+        {/* ── Internal linking: Explore TH levels ── */}
+        <section className="mt-12 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-2xl border border-primary/10 p-6"
+          aria-labelledby="explore-heading">
+          <h2 id="explore-heading" className="text-lg font-bold mb-1 flex items-center gap-2">
+            <Shield className="w-5 h-5 text-primary" />
+            Explore More TH{base.townhall} Bases
+          </h2>
+          <p className="text-sm text-muted-foreground mb-4">
+            Discover the full collection of verified Town Hall {base.townhall} layouts for every strategy.
+          </p>
+          <div className="flex flex-wrap gap-2 mb-5">
+            {["War", "Farming", "Hybrid", "Trophy", "Anti 3 Star", "Legend League"].map(type => (
+              <Link
+                key={type}
+                href={`/th/${base.townhall}?base_type=${encodeURIComponent(type)}`}
+                className="px-3 py-1.5 text-xs font-semibold rounded-xl border border-primary/20 text-primary hover:bg-primary hover:text-white transition-all"
+              >
+                {type} Bases
+              </Link>
+            ))}
+          </div>
+
+          {exploreTH.length > 0 && (
+            <>
+              <div className="h-px bg-border mb-4" />
+              <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">
+                Browse other Town Hall levels
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {TH_LEVELS.map(th => (
+                  <Link
+                    key={th}
+                    href={`/th/${th}`}
+                    className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                      th === base.townhall
+                        ? "text-white"
+                        : "bg-white border border-border text-muted-foreground hover:border-primary hover:text-primary"
+                    }`}
+                    style={th === base.townhall ? { backgroundColor: GOLD } : {}}
+                  >
+                    TH{th}
+                  </Link>
+                ))}
+              </div>
+            </>
+          )}
+        </section>
+      </div>
+
+      {/* ── Mobile sticky CTA ── */}
+      <div className="fixed bottom-16 left-0 right-0 z-30 px-4 pb-2 lg:hidden">
+        <button
+          onClick={handleCopy}
+          className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-xl font-black text-white text-sm shadow-xl active:scale-95 transition-all"
+          style={{ background: `linear-gradient(135deg, ${GOLD}, #B8952E)` }}
+        >
+          <Copy className="w-4 h-4" />
+          Copy Layout — Free
+        </button>
+      </div>
 
       <ReportModal baseId={base.id} open={reportOpen} onClose={() => setReportOpen(false)} />
     </div>
