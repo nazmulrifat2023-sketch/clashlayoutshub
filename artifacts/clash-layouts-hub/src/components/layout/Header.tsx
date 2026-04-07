@@ -114,12 +114,12 @@ export function Header() {
                       <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                     </div>
                     <Link
-                      href="/profile"
+                      href="/my-submissions"
                       onClick={() => setUserMenuOpen(false)}
                       className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors"
                     >
                       <User className="w-4 h-4 text-muted-foreground" />
-                      My Profile
+                      My Submissions
                     </Link>
                     {/* Admin link — only for admin users */}
                     {user.is_admin && (
@@ -207,12 +207,12 @@ export function Header() {
                     </div>
                   </div>
                   <Link
-                    href="/profile"
+                    href="/my-submissions"
                     className="flex items-center gap-2 py-2 text-sm font-medium text-foreground"
                     onClick={() => setMobileOpen(false)}
                   >
                     <User className="w-4 h-4" />
-                    My Profile
+                    My Submissions
                   </Link>
                   {user.is_admin && (
                     <Link

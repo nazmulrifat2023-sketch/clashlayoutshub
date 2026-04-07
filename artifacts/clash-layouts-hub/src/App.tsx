@@ -18,6 +18,7 @@ import { PrivacyPolicyPage, TermsPage, CookiePolicyPage, DmcaPage } from "@/page
 import { ConsentBanner } from "@/components/ads/ConsentBanner";
 import { LoginPage } from "@/pages/LoginPage";
 import { SignupPage } from "@/pages/SignupPage";
+import { AuthCallbackPage } from "@/pages/AuthCallbackPage";
 import { ProfilePage } from "@/pages/ProfilePage";
 import { AdminLayout } from "@/pages/admin/AdminLayout";
 import { AdminDashboard } from "@/pages/admin/AdminDashboard";
@@ -96,6 +97,9 @@ function Router() {
       </Route>
       <Route path="/signup">
         <PublicLayout><SignupPage /></PublicLayout>
+      </Route>
+      <Route path="/auth/callback">
+        <AuthCallbackPage />
       </Route>
       <Route path="/profile">
         <PublicLayout><ProfilePage /></PublicLayout>

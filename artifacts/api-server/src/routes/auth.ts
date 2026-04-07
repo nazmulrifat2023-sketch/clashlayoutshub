@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import { db } from "@workspace/db";
 import { usersTable } from "@workspace/db/schema";
 import { eq } from "drizzle-orm";
+import { randomUUID } from "crypto";
 
 const router: IRouter = Router();
 
@@ -113,6 +114,111 @@ router.get("/auth/me", async (req: Request, res: Response): Promise<void> => {
     return;
   }
   res.json(publicUser(user));
+});
+
+/* ─── Google OAuth ─── */
+function getGoogleRedirectUri(req: Request): string {
+  const envUri = process.env.GOOGLE_REDIRECT_URI;
+  if (envUri) return envUri;
+  const proto = req.headers["x-forwarded-proto"] || req.protocol;
+  const host = req.headers["x-forwarded-host"] || req.headers.host;
+  return `${proto}://${host}/api/auth/google/callback`;
+}
+
+function getFrontendBase(req: Request): string {
+  const proto = req.headers["x-forwarded-proto"] || req.protocol;
+  const host = (req.headers["x-forwarded-host"] || req.headers.host) as string;
+  // Strip the /api prefix — the frontend is at the root
+  return `${proto}://${host}`;
+}
+
+router.get("/auth/google", (req: Request, res: Response): void => {
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  if (!clientId) {
+    const frontendBase = getFrontendBase(req);
+    res.redirect(`${frontendBase}/login?oauth_error=not_configured`);
+    return;
+  }
+  const redirectUri = getGoogleRedirectUri(req);
+  const params = new URLSearchParams({
+    client_id: clientId,
+    redirect_uri: redirectUri,
+    response_type: "code",
+    scope: "openid email profile",
+    access_type: "online",
+    prompt: "select_account",
+  });
+  res.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params}`);
+});
+
+router.get("/auth/google/callback", async (req: Request, res: Response): Promise<void> => {
+  const frontendBase = getFrontendBase(req);
+  const { code, error } = req.query as { code?: string; error?: string };
+
+  if (error || !code) {
+    res.redirect(`${frontendBase}/login?oauth_error=cancelled`);
+    return;
+  }
+
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+  if (!clientId || !clientSecret) {
+    res.redirect(`${frontendBase}/login?oauth_error=not_configured`);
+    return;
+  }
+
+  try {
+    const redirectUri = getGoogleRedirectUri(req);
+
+    // 1. Exchange code for tokens
+    const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        code,
+        client_id: clientId,
+        client_secret: clientSecret,
+        redirect_uri: redirectUri,
+        grant_type: "authorization_code",
+      }),
+    });
+    const tokenData = await tokenRes.json() as { access_token?: string; error?: string };
+    if (!tokenData.access_token) throw new Error("No access token");
+
+    // 2. Fetch Google user profile
+    const profileRes = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
+      headers: { Authorization: `Bearer ${tokenData.access_token}` },
+    });
+    const profile = await profileRes.json() as {
+      id: string;
+      email: string;
+      name: string;
+      picture?: string;
+    };
+    if (!profile.email) throw new Error("No email from Google");
+
+    // 3. Find or create user in our DB
+    let [user] = await db.select().from(usersTable)
+      .where(eq(usersTable.email, profile.email.toLowerCase())).limit(1);
+
+    if (!user) {
+      const displayName = profile.name || profile.email.split("@")[0];
+      const fakeHash = await bcrypt.hash(randomUUID(), 4); // placeholder — Google users can't password login
+      [user] = await db.insert(usersTable).values({
+        email: profile.email.toLowerCase(),
+        display_name: displayName,
+        password_hash: fakeHash,
+      }).returning();
+    }
+
+    // 4. Issue our JWT and redirect to frontend
+    const token = makeToken(user.id);
+    const userJson = encodeURIComponent(JSON.stringify(publicUser(user)));
+    res.redirect(`${frontendBase}/auth/callback?token=${token}&user=${userJson}`);
+  } catch (err) {
+    console.error("[google oauth]", err);
+    res.redirect(`${frontendBase}/login?oauth_error=failed`);
+  }
 });
 
 export default router;
