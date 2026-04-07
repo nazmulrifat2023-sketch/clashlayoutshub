@@ -3,7 +3,7 @@ import { useParams, Link } from "wouter";
 import {
   Copy, Star, Shield, ChevronRight, MessageSquare, AlertTriangle,
   ExternalLink, ChevronDown, ChevronUp, Flame, Users,
-  TrendingUp, Zap, BookOpen, ArrowRight, Loader2, Eye, CheckCircle2,
+  TrendingUp, Zap, BookOpen, ArrowRight, Eye, CheckCircle2, Info,
 } from "lucide-react";
 import { useTranslation } from "@/contexts/LanguageContext";
 import { BaseCard } from "@/components/base/BaseCard";
@@ -12,7 +12,6 @@ import { AdUnit } from "@/components/ads/AdUnit";
 import {
   useGetBaseBySlug, useIncrementBaseCopy, useIncrementBaseView,
   useGetSimilarBases, useListComments, useAddComment, useGetBaseTodayCopies,
-  useGetBaseAnalysis,
 } from "@workspace/api-client-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -231,64 +230,6 @@ function JsonLdSchema({ base, url, faqs }: { base: any; url: string; faqs: { q: 
   );
 }
 
-/* ─── AI Analysis Section ─── */
-function AIAnalysisSection({ baseId }: { baseId: string }) {
-  const { data, isLoading, isError } = useGetBaseAnalysis(baseId);
-  const paragraphs = data?.analysis?.split("\n\n").filter(Boolean) ?? [];
-
-  if (isLoading) {
-    return (
-      <div className="mb-8 rounded-2xl border border-amber-100 bg-gradient-to-br from-amber-50 to-orange-50 p-6">
-        <div className="flex items-center gap-2.5 mb-5">
-          <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
-            <Zap className="w-4 h-4 text-amber-600 animate-pulse" />
-          </div>
-          <div>
-            <h2 className="font-black text-gray-900 text-base">Expert Base Analysis</h2>
-            <p className="text-xs text-amber-600">AI Strategist • Generating…</p>
-          </div>
-        </div>
-        <div className="space-y-3">
-          {[1, 2, 3].map(i => (
-            <div key={i} className="animate-pulse space-y-2">
-              <div className="h-3 bg-amber-100 rounded w-full" />
-              <div className="h-3 bg-amber-100 rounded w-5/6" />
-              <div className="h-3 bg-amber-100 rounded w-4/5" />
-            </div>
-          ))}
-        </div>
-        <p className="text-xs text-amber-700/70 mt-4 flex items-center gap-1.5">
-          <Loader2 className="w-3.5 h-3.5 animate-spin" />
-          Analysing layout by our Pro CoC Strategist…
-        </p>
-      </div>
-    );
-  }
-
-  if (isError || !data?.analysis) return null;
-
-  return (
-    <div className="mb-8 rounded-2xl border border-amber-100 bg-gradient-to-br from-amber-50/60 to-white overflow-hidden">
-      <div className="flex items-center gap-3 px-6 py-4 border-b border-amber-100 bg-amber-50/80">
-        <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${GOLD}25` }}>
-          <Zap className="w-4 h-4" style={{ color: GOLD }} />
-        </div>
-        <div className="flex-1 min-w-0">
-          <h2 className="font-black text-gray-900 text-sm">Expert Base Analysis</h2>
-          <p className="text-xs text-gray-500">Pro CoC Strategist · AI-generated · Expert-verified</p>
-        </div>
-        <span className="shrink-0 text-xs font-bold px-2.5 py-1 rounded-full" style={{ backgroundColor: `${GOLD}20`, color: GOLD }}>
-          Pro Analysis
-        </span>
-      </div>
-      <div className="px-6 py-5 space-y-4 text-sm text-gray-600 leading-[1.85]">
-        {paragraphs.map((para, i) => (
-          <p key={i}>{para}</p>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 /* ─── Quick Stat Pill ─── */
 function StatPill({ label, value, color }: { label: string; value: string; color?: string }) {
@@ -545,8 +486,23 @@ export function BaseDetailPage() {
               </button>
             </div>
 
-            {/* AI Analysis */}
-            <AIAnalysisSection baseId={base.id} />
+            {/* About This Base — manual description from admin */}
+            {base.description && (
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-100 bg-gray-50/70">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Info className="w-4 h-4 text-primary" />
+                  </div>
+                  <div>
+                    <h2 className="font-black text-gray-900 text-sm">About This Base</h2>
+                    <p className="text-xs text-gray-400">Written by the ClashLayoutsHub team</p>
+                  </div>
+                </div>
+                <div className="px-5 py-5 text-sm text-gray-600 leading-relaxed whitespace-pre-line">
+                  {base.description}
+                </div>
+              </div>
+            )}
 
             {/* Key Features */}
             {base.key_features && base.key_features.length > 0 && (
