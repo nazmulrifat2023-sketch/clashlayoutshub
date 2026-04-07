@@ -16,15 +16,40 @@ import {
 const TH_LEVELS = [3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18];
 
 function THCard({ level, count, topType }: { level: number; count: number; topType: string }) {
+  const imgSrc = `${import.meta.env.BASE_URL}assets/townhalls/th${level}.png`;
+
   return (
     <Link href={`/th/${level}`}
-      className="group bg-white rounded-xl border border-border p-4 text-center card-hover hover:border-primary/50 transition-all">
-      <div className="w-12 h-12 mx-auto mb-2 bg-gradient-to-br from-primary/20 to-primary/5 rounded-xl flex items-center justify-center">
-        <span className="font-black text-lg text-primary">{level}</span>
+      className="group bg-white rounded-xl border border-border p-3 sm:p-4 text-center
+                 hover:border-primary/50 hover:shadow-md transition-all duration-200">
+      {/* TH image with bounce on hover */}
+      <div className="flex items-center justify-center mb-2 h-16">
+        <img
+          src={imgSrc}
+          alt={`Town Hall ${level}`}
+          className="w-14 h-14 sm:w-16 sm:h-16 object-contain
+                     drop-shadow-[0_4px_8px_rgba(0,0,0,0.25)]
+                     transition-transform duration-200
+                     group-hover:scale-110 group-hover:drop-shadow-[0_6px_14px_rgba(0,0,0,0.35)]"
+          onError={(e) => {
+            const target = e.currentTarget;
+            target.style.display = "none";
+            const fallback = target.nextElementSibling as HTMLElement | null;
+            if (fallback) fallback.style.display = "flex";
+          }}
+        />
+        {/* Fallback number shown only if image fails to load */}
+        <div className="w-14 h-14 bg-gradient-to-br from-primary/20 to-primary/5 rounded-xl
+                        items-center justify-center hidden">
+          <span className="font-black text-lg text-primary">{level}</span>
+        </div>
       </div>
+
       <div className="th-badge inline-block mb-1">TH{level}</div>
       <p className="text-xs text-muted-foreground mt-1">{count} bases</p>
-      {topType && <p className="text-xs text-secondary font-medium mt-0.5 truncate">{topType}</p>}
+      {topType && (
+        <p className="text-xs text-secondary font-medium mt-0.5 truncate">{topType}</p>
+      )}
     </Link>
   );
 }
