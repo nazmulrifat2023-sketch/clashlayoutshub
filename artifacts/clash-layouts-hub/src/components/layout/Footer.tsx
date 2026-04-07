@@ -1,6 +1,5 @@
 import { Link } from "wouter";
 import { Shield } from "lucide-react";
-import { AdUnit } from "@/components/ads/AdUnit";
 
 const GOLD = "#D4AF37";
 
@@ -67,11 +66,6 @@ export function Footer() {
 
   return (
     <footer className="bg-[#111827] text-white mt-16">
-
-      {/* Footer ad strip */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
-        <AdUnit slot="footer-banner" compact className="max-w-3xl mx-auto" />
-      </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-8 lg:gap-10">
