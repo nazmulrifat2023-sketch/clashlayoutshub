@@ -28,6 +28,7 @@ import { AdminBlog } from "@/pages/admin/AdminBlog";
 import { AdminBlogForm } from "@/pages/admin/AdminBlogForm";
 import { AdminSubmissions } from "@/pages/admin/AdminSubmissions";
 import { AdminReports } from "@/pages/admin/AdminReports";
+import { AdminAnalytics } from "@/pages/admin/AdminAnalytics";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -132,6 +133,9 @@ function Router() {
       </Route>
       <Route path="/admin/reports">
         <AdminLayout><AdminReports /></AdminLayout>
+      </Route>
+      <Route path="/admin/analytics">
+        <AdminLayout><AdminAnalytics /></AdminLayout>
       </Route>
 
       {/* Catch-all */}
