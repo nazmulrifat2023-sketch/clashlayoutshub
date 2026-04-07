@@ -700,7 +700,7 @@ export function BaseDetailPage() {
                   {t.copyLayout}
                 </button>
                 <a
-                  href="https://discord.gg/clashoflayouts"
+                  href="https://discord.gg/Z9jpQyKEdw"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full flex items-center justify-center gap-2 py-2.5 bg-[#5865F2] hover:bg-[#4752C4] text-white rounded-xl font-semibold text-sm transition-colors active:scale-95"

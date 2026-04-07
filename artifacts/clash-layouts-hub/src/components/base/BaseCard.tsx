@@ -109,7 +109,7 @@ export function BaseCard({ base, showTrending }: BaseCardProps) {
 
             <div className="flex items-center gap-1">
               <a
-                href="https://discord.gg/clashoflayouts"
+                href="https://discord.gg/Z9jpQyKEdw"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="p-1.5 rounded-lg hover:bg-indigo-50 text-indigo-500 transition-colors"

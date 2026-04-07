@@ -56,8 +56,8 @@ const CONTACT_CARDS = [
     color: "bg-indigo-50 text-indigo-600",
     title: "Discord Community",
     desc: "Join thousands of Clash players, share layouts, and get instant help.",
-    action: "discord.gg/clashlayoutshub",
-    href: "https://discord.gg/clashlayoutshub",
+    action: "discord.gg/Z9jpQyKEdw",
+    href: "https://discord.gg/Z9jpQyKEdw",
     label: "Join Discord",
   },
   {
@@ -125,7 +125,7 @@ export function ContactPage() {
           url: "https://clashlayoutshub.com",
           email: "contact@clashlayoutshub.com",
           sameAs: [
-            "https://discord.gg/clashlayoutshub",
+            "https://discord.gg/Z9jpQyKEdw",
           ],
         },
       },
@@ -463,7 +463,7 @@ export function ContactPage() {
               </p>
             </div>
             <a
-              href="https://discord.gg/clashlayoutshub"
+              href="https://discord.gg/Z9jpQyKEdw"
               target="_blank"
               rel="noopener noreferrer"
               className="shrink-0 inline-flex items-center gap-2 px-6 py-3 bg-indigo-500 hover:bg-indigo-600 active:scale-95 text-white rounded-xl text-sm font-bold transition-all"
