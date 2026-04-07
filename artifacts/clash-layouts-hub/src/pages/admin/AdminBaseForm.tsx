@@ -17,7 +17,7 @@ const schema = z.object({
   difficulty: z.string().min(1),
   image_url: z.string().optional().or(z.literal("")),
   layout_link: z.string().includes("link.clashofclans.com", { message: "Must be a Clash of Clans link" }),
-  description: z.string().min(200, "Description must be at least 200 characters (aim for 550–670)"),
+  description: z.string().min(200, "Description must be at least 200 characters (aim for 1000–1200)"),
   win_rate: z.coerce.number().min(0).max(100),
   key_features: z.string().optional(),
   best_against: z.string().optional(),
@@ -452,40 +452,46 @@ export function AdminBaseForm() {
 
         {/* Description + AI Suggest + Char counter */}
         <div>
-          <div className="flex items-center justify-between mb-1">
-            <label className="text-sm font-semibold">Description</label>
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+            <div>
+              <label className="text-sm font-semibold">Description</label>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                AI generates structured HTML (<code className="text-[10px] bg-muted px-1 rounded">&lt;h3&gt;</code>, <code className="text-[10px] bg-muted px-1 rounded">&lt;p&gt;</code>, <code className="text-[10px] bg-muted px-1 rounded">&lt;strong&gt;</code>). Rendered as rich text on the Base Detail page.
+              </p>
+            </div>
             <button
               type="button"
               onClick={handleAiSuggest}
               disabled={suggestingAi}
-              className="flex items-center gap-1.5 px-2.5 py-1 bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200 rounded-lg text-xs font-medium transition-colors disabled:opacity-50"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 shrink-0"
             >
               {suggestingAi
                 ? <Loader2 className="w-3 h-3 animate-spin" />
                 : <Sparkles className="w-3 h-3" />}
-              AI Suggest
+              {suggestingAi ? "Generating…" : "AI Suggest"}
             </button>
           </div>
           <textarea
             {...register("description")}
-            rows={6}
-            className={`${inputCls} resize-none`}
+            rows={10}
+            placeholder="Click 'AI Suggest' to generate a structured HTML description, or write your own using <h3>, <p>, and <strong> tags."
+            className={`${inputCls} resize-y font-mono text-xs`}
           />
-          <div className="flex items-center justify-between mt-1">
+          <div className="flex flex-wrap items-center justify-between gap-2 mt-1">
             {errors.description
               ? <p className="text-destructive text-xs">{errors.description.message}</p>
-              : <span />}
+              : <span className="text-xs text-muted-foreground">Target: 1000–1200 chars (HTML included)</span>}
             <span
-              className={`text-xs font-medium tabular-nums ${
-                description.length >= 800 && description.length <= 900
+              className={`text-xs font-semibold tabular-nums ${
+                description.length >= 1000 && description.length <= 1400
                   ? "text-green-600"
                   : description.length >= 600
                   ? "text-yellow-600"
                   : "text-muted-foreground"
               }`}
             >
-              {description.length} / 800–900
-              {description.length >= 800 && description.length <= 900 && (
+              {description.length.toLocaleString()} chars
+              {description.length >= 1000 && description.length <= 1400 && (
                 <span className="ml-1">✓</span>
               )}
             </span>

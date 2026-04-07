@@ -488,7 +488,7 @@ export function BaseDetailPage() {
               </button>
             </div>
 
-            {/* About This Base — manual description from admin */}
+            {/* About This Base — rich HTML description from admin */}
             {base.description && (
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                 <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-100 bg-gray-50/70">
@@ -497,12 +497,24 @@ export function BaseDetailPage() {
                   </div>
                   <div>
                     <h2 className="font-black text-gray-900 text-sm">About This Base</h2>
-                    <p className="text-xs text-gray-400">Written by the ClashLayoutsHub team</p>
+                    <p className="text-xs text-gray-400">Expert analysis by the ClashLayoutsHub team</p>
                   </div>
                 </div>
-                <div className="px-5 py-5 text-sm text-gray-600 leading-relaxed whitespace-pre-line">
-                  {base.description}
-                </div>
+                {base.description.includes("<") ? (
+                  <div
+                    className="px-5 py-5 prose prose-sm max-w-none
+                      prose-headings:text-gray-900 prose-headings:font-black prose-headings:text-base
+                      prose-h3:mt-5 prose-h3:mb-2
+                      prose-p:text-gray-600 prose-p:leading-relaxed prose-p:my-2
+                      prose-strong:text-gray-800 prose-strong:font-semibold
+                      prose-a:text-primary prose-a:no-underline hover:prose-a:underline"
+                    dangerouslySetInnerHTML={{ __html: base.description }}
+                  />
+                ) : (
+                  <div className="px-5 py-5 text-sm text-gray-600 leading-relaxed whitespace-pre-line">
+                    {base.description}
+                  </div>
+                )}
               </div>
             )}
 
