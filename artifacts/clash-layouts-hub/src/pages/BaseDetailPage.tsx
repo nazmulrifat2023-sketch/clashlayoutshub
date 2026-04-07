@@ -524,36 +524,6 @@ export function BaseDetailPage() {
               </div>
             )}
 
-            {/* Pro Tips — gold card, SEO-friendly <li> list */}
-            {base.pro_tips && base.pro_tips.length > 0 && (
-              <div className="rounded-2xl shadow-sm overflow-hidden" style={{ border: `1.5px solid ${GOLD}50` }}>
-                <div className="flex items-center gap-3 px-5 py-4" style={{ background: `linear-gradient(135deg, ${GOLD}18 0%, #fffdf0 100%)` }}>
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${GOLD}25` }}>
-                    <Zap className="w-4 h-4" style={{ color: GOLD }} />
-                  </div>
-                  <div>
-                    <h3 className="font-black text-sm text-gray-900">Pro Defense Tips</h3>
-                    <p className="text-xs text-gray-400">Strategic insights for maximum defense</p>
-                  </div>
-                  <span className="ml-auto shrink-0 text-xs font-bold px-2.5 py-1 rounded-full" style={{ backgroundColor: `${GOLD}20`, color: GOLD }}>
-                    Expert
-                  </span>
-                </div>
-                <div className="px-5 py-4" style={{ backgroundColor: "#fffef8" }}>
-                  <ul className="space-y-3">
-                    {base.pro_tips.map((tip, i) => (
-                      <li key={i} className="flex items-start gap-3 text-sm text-gray-700 leading-relaxed">
-                        <span className="shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black text-white mt-0.5" style={{ background: `linear-gradient(135deg, ${GOLD} 0%, #b8860b 100%)` }}>
-                          {i + 1}
-                        </span>
-                        {tip}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            )}
-
             {/* Best Against */}
             {base.best_against && base.best_against.length > 0 && (
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
