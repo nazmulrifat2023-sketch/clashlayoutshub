@@ -13,6 +13,7 @@ import { BlogPage } from "@/pages/BlogPage";
 import { BlogDetailPage } from "@/pages/BlogDetailPage";
 import { SubmitBasePage } from "@/pages/SubmitBasePage";
 import { AboutPage, ContactPage, NotFoundPage } from "@/pages/StaticPages";
+import { PrivacyPolicyPage, TermsPage, CookiePolicyPage, DmcaPage } from "@/pages/LegalPages";
 import { ConsentBanner } from "@/components/ads/ConsentBanner";
 import { LoginPage } from "@/pages/LoginPage";
 import { SignupPage } from "@/pages/SignupPage";
@@ -72,6 +73,20 @@ function Router() {
       </Route>
       <Route path="/contact">
         <PublicLayout><ContactPage /></PublicLayout>
+      </Route>
+
+      {/* Legal routes */}
+      <Route path="/privacy-policy">
+        <PublicLayout><PrivacyPolicyPage /></PublicLayout>
+      </Route>
+      <Route path="/terms">
+        <PublicLayout><TermsPage /></PublicLayout>
+      </Route>
+      <Route path="/cookie-policy">
+        <PublicLayout><CookiePolicyPage /></PublicLayout>
+      </Route>
+      <Route path="/dmca">
+        <PublicLayout><DmcaPage /></PublicLayout>
       </Route>
 
       {/* Auth routes */}
