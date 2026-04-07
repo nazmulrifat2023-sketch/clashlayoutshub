@@ -13,6 +13,7 @@ import { BlogPage } from "@/pages/BlogPage";
 import { BlogDetailPage } from "@/pages/BlogDetailPage";
 import { SubmitBasePage } from "@/pages/SubmitBasePage";
 import { AboutPage, ContactPage, NotFoundPage } from "@/pages/StaticPages";
+import { ConsentBanner } from "@/components/ads/ConsentBanner";
 import { LoginPage } from "@/pages/LoginPage";
 import { SignupPage } from "@/pages/SignupPage";
 import { AdminLayout } from "@/pages/admin/AdminLayout";
@@ -126,6 +127,7 @@ function App() {
             <Router />
           </WouterRouter>
           <Toaster richColors position="top-right" />
+          <ConsentBanner />
         </AuthProvider>
       </LanguageProvider>
     </QueryClientProvider>
