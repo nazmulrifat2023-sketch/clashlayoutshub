@@ -53,7 +53,7 @@ const SOCIAL_LINKS = [
     color: "#5865F2",
   },
   {
-    href: "https://x.com/clashlayoutshub",
+    href: "https://x.com/ClashLayoutsHub",
     label: "X",
     Icon: XIcon,
     color: "#FFFFFF",
