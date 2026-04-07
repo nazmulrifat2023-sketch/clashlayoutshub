@@ -477,15 +477,15 @@ export function AdminBaseForm() {
               : <span />}
             <span
               className={`text-xs font-medium tabular-nums ${
-                description.length >= 550 && description.length <= 670
+                description.length >= 800 && description.length <= 900
                   ? "text-green-600"
-                  : description.length >= 400
+                  : description.length >= 600
                   ? "text-yellow-600"
                   : "text-muted-foreground"
               }`}
             >
-              {description.length} / 550–670
-              {description.length >= 550 && description.length <= 670 && (
+              {description.length} / 800–900
+              {description.length >= 800 && description.length <= 900 && (
                 <span className="ml-1">✓</span>
               )}
             </span>

@@ -47,7 +47,7 @@ router.post("/suggest-description", async (req, res): Promise<void> => {
   const th = Number(townhall) || 14;
   const type = base_type || "War";
 
-  const prompt = `Act as a high-level Clash of Clans strategist. Write a professional, engaging description for a Town Hall ${th} ${type} base. Focus on defense mechanics and troop pathing. The description MUST be between 550 to 670 characters long. Format it as a single, cohesive paragraph. Return ONLY the description text — no quotes, no labels, no extra commentary.`;
+  const prompt = `Act as a high-level Clash of Clans strategist. Write a professional, engaging description for a Town Hall ${th} ${type} base. Focus on defense mechanics and troop pathing. The description MUST be between 800 to 900 characters long. Format it as a single, cohesive paragraph. Return ONLY the description text — no quotes, no labels, no extra commentary.`;
 
   try {
     console.log(`[suggest-description] Generating for TH${th} ${type}`);
@@ -64,11 +64,11 @@ router.post("/suggest-description", async (req, res): Promise<void> => {
       throw new Error("AI returned too short a description");
     }
 
-    // Trim to 670 chars at the nearest sentence boundary
-    if (description.length > 670) {
-      const slice = description.slice(0, 670);
+    // Trim to 900 chars at the nearest sentence boundary
+    if (description.length > 900) {
+      const slice = description.slice(0, 900);
       const lastPeriod = slice.lastIndexOf(".");
-      description = lastPeriod > 400 ? slice.slice(0, lastPeriod + 1) : slice;
+      description = lastPeriod > 600 ? slice.slice(0, lastPeriod + 1) : slice;
     }
 
     console.log(`[suggest-description] Final length: ${description.length} chars`);
