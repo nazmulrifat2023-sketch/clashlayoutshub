@@ -2,11 +2,12 @@ import { useState, useEffect } from "react";
 import { useParams, Link } from "wouter";
 import {
   Copy, Eye, Star, Shield, ChevronRight, MessageSquare, AlertTriangle,
-  Bookmark, ExternalLink, Heart, Activity
+  Bookmark, ExternalLink, Heart, Activity, ChevronDown, ChevronUp
 } from "lucide-react";
 import { useTranslation } from "@/contexts/LanguageContext";
 import { BaseCard } from "@/components/base/BaseCard";
 import { ReportModal } from "@/components/base/ReportModal";
+import { AdUnit } from "@/components/base/AdUnit";
 import {
   useGetBaseBySlug, useIncrementBaseCopy, useIncrementBaseView,
   useGetSimilarBases, useListComments, useAddComment, useGetBaseTodayCopies,
@@ -28,6 +29,136 @@ function StarRating({ value, onChange }: { value: number; onChange: (v: number) 
         </button>
       ))}
     </div>
+  );
+}
+
+function FAQItem({ q, a }: { q: string; a: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="border border-border rounded-xl overflow-hidden">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between px-4 py-3 text-sm font-semibold text-left hover:bg-muted/40 transition-colors"
+        aria-expanded={open}
+      >
+        <span>{q}</span>
+        {open ? <ChevronUp className="w-4 h-4 text-muted-foreground flex-shrink-0" /> : <ChevronDown className="w-4 h-4 text-muted-foreground flex-shrink-0" />}
+      </button>
+      {open && (
+        <div className="px-4 pb-4 pt-1 text-sm text-muted-foreground leading-relaxed border-t border-border bg-muted/20">
+          {a}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function getFAQs(baseType: string, th: number): { q: string; a: string }[] {
+  const type = baseType.toLowerCase();
+  if (type.includes("war") || type.includes("anti")) {
+    return [
+      {
+        q: `Is this TH${th} war base still effective in 2026?`,
+        a: `Yes — this layout is updated for the 2026 meta and tested against the most popular TH${th} attack strategies including Super Witch, Hybrid, and Yeti Smash. Community members report high three-star defense rates.`,
+      },
+      {
+        q: "How do I copy this base to my village?",
+        a: "Click the orange Copy Layout button above. It opens the official Clash of Clans link that automatically imports the base into your game's edit layout screen. Tap the copy icon in-game to save it.",
+      },
+      {
+        q: `What attacks does this TH${th} ${baseType} base counter best?`,
+        a: `This layout is optimized to counter the three-star heavy strategies common at TH${th}. The compartmentalized design forces attackers to commit troops early while the centralized Town Hall ensures maximum time pressure.`,
+      },
+    ];
+  }
+  if (type.includes("farming")) {
+    return [
+      {
+        q: `How much loot can this TH${th} farming base protect?`,
+        a: `This TH${th} farming base places your Dark Elixir storage deep inside multiple wall layers, making it extremely difficult for Sneaky Goblins or Super Archers to reach. Gold and Elixir are semi-exposed as a decoy, which is the standard approach at this level.`,
+      },
+      {
+        q: "How do I copy this base to my village?",
+        a: "Click the orange Copy Layout button above. It opens the official Clash of Clans link that automatically imports the base into your game's edit layout screen. Tap the copy icon in-game to save it.",
+      },
+      {
+        q: `Does this layout work for both regular and Legend League farming at TH${th}?`,
+        a: `This layout is designed for regular farming. If you are in Legend League, consider pairing it with a strong trophy defense design since loot protection mechanics differ slightly at that level.`,
+      },
+    ];
+  }
+  if (type.includes("trophy") || type.includes("legend")) {
+    return [
+      {
+        q: `How many trophies can I expect to protect with this TH${th} base?`,
+        a: `Trophy protection varies by opponent skill level, but this layout consistently gives away fewer than 2-star results, helping you maintain or grow your trophy count. It has been tested across multiple seasons at TH${th}.`,
+      },
+      {
+        q: "How do I copy this base to my village?",
+        a: "Click the orange Copy Layout button above. It opens the official Clash of Clans link that automatically imports the base into your game's edit layout screen. Tap the copy icon in-game to save it.",
+      },
+      {
+        q: `Is this base suitable for pushing to Champions or Titan at TH${th}?`,
+        a: `Yes — this layout is designed for high-level trophy pushing. The Town Hall placement and surrounding defenses maximize the chance of a 0-star or 1-star defense result in competitive trophy tiers.`,
+      },
+    ];
+  }
+  return [
+    {
+      q: `Why is this TH${th} ${baseType} layout popular in 2026?`,
+      a: `This layout balances multiple defensive priorities for TH${th}: protecting core resources, defending the Town Hall, and covering the entire base with overlapping defense ranges. It has earned high community ratings for its versatility.`,
+    },
+    {
+      q: "How do I copy this base to my village?",
+      a: "Click the orange Copy Layout button above. It opens the official Clash of Clans link that automatically imports the base into your game's edit layout screen. Tap the copy icon in-game to save it.",
+    },
+    {
+      q: `How often is this TH${th} ${baseType} base updated?`,
+      a: `Community contributors review and refresh base layouts after each major game update. The health score displayed on this page reflects current community feedback — higher scores mean the layout is still performing well in the current meta.`,
+    },
+  ];
+}
+
+function JsonLdSchema({ base, url }: { base: any; url: string }) {
+  const breadcrumb = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: `${window.location.origin}/` },
+      { "@type": "ListItem", position: 2, name: `TH${base.townhall} Bases`, item: `${window.location.origin}/th/${base.townhall}` },
+      { "@type": "ListItem", position: 3, name: base.title, item: url },
+    ],
+  };
+
+  const aggregateRating = base.rating_count > 0 ? {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: base.title,
+    description: base.description,
+    image: base.image_url,
+    url,
+    aggregateRating: {
+      "@type": "AggregateRating",
+      ratingValue: Number(base.rating_avg).toFixed(1),
+      reviewCount: base.rating_count,
+      bestRating: 5,
+      worstRating: 1,
+    },
+  } : null;
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }}
+      />
+      {aggregateRating && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(aggregateRating) }}
+        />
+      )}
+    </>
   );
 }
 
@@ -57,12 +188,14 @@ export function BaseDetailPage() {
   useEffect(() => {
     if (base?.id) {
       incrementView.mutate({ id: base.id });
-      // Track in recently viewed
       const key = "clh_recently_viewed";
       try {
         const viewed = JSON.parse(localStorage.getItem(key) || "[]");
         const filtered = viewed.filter((b: any) => b.id !== base.id);
-        const updated = [{ id: base.id, slug: base.slug, title: base.title, townhall: base.townhall, image_url: base.image_url }, ...filtered].slice(0, 5);
+        const updated = [
+          { id: base.id, slug: base.slug, title: base.title, townhall: base.townhall, image_url: base.image_url },
+          ...filtered,
+        ].slice(0, 5);
         localStorage.setItem(key, JSON.stringify(updated));
       } catch {}
     }
@@ -114,9 +247,14 @@ export function BaseDetailPage() {
 
   const healthScore = base.health_score ?? Math.max(0, (base.win_rate ?? 80) - (base.report_count ?? 0) * 5);
   const healthColor = healthScore >= 70 ? "text-green-600" : healthScore >= 40 ? "text-yellow-600" : "text-red-600";
+  const currentUrl = typeof window !== "undefined" ? window.location.href : "";
+  const faqs = getFAQs(base.base_type ?? "", base.townhall ?? 0);
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
+      {/* JSON-LD structured data */}
+      <JsonLdSchema base={base} url={currentUrl} />
+
       {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-6 flex-wrap">
         <Link href="/" className="hover:text-primary transition-colors">Home</Link>
@@ -134,7 +272,7 @@ export function BaseDetailPage() {
           <h1 className="text-2xl font-black mb-4">{base.title}</h1>
 
           {/* Base image */}
-          <div className="rounded-xl overflow-hidden border border-border mb-6 relative">
+          <div className="rounded-xl overflow-hidden border border-border mb-4 relative">
             {base.image_url ? (
               <img
                 src={base.image_url}
@@ -154,6 +292,9 @@ export function BaseDetailPage() {
               </span>
             </div>
           </div>
+
+          {/* Ad unit below image */}
+          <AdUnit slot="base-detail-below-image" size="banner" className="mb-5" />
 
           {/* Today copies callout */}
           {todayCopies && todayCopies.todayCopies > 0 && (
@@ -199,8 +340,18 @@ export function BaseDetailPage() {
             </div>
           )}
 
+          {/* FAQ Section */}
+          <div className="mb-10">
+            <h2 className="text-xl font-bold mb-4">Frequently Asked Questions</h2>
+            <div className="space-y-3">
+              {faqs.map((faq, i) => (
+                <FAQItem key={i} q={faq.q} a={faq.a} />
+              ))}
+            </div>
+          </div>
+
           {/* Comments section */}
-          <div className="mt-10">
+          <div className="mt-4">
             <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
               <MessageSquare className="w-5 h-5" />
               {t.comments} ({comments?.length ?? 0})
@@ -298,6 +449,19 @@ export function BaseDetailPage() {
               </div>
             </div>
 
+            {/* Today copies counter */}
+            {todayCopies && todayCopies.todayCopies > 0 && (
+              <div className="bg-primary/5 border border-primary/20 rounded-xl p-3 flex items-center gap-3">
+                <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Activity className="w-4 h-4 text-primary" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Copied today</p>
+                  <p className="text-lg font-black text-primary leading-tight">{todayCopies.todayCopies} <span className="text-xs font-medium text-muted-foreground">players</span></p>
+                </div>
+              </div>
+            )}
+
             {/* Base Stats */}
             <div className="bg-white border border-border rounded-xl p-4">
               <h3 className="font-bold mb-4 text-sm">Base Details</h3>
@@ -333,6 +497,9 @@ export function BaseDetailPage() {
                 {base.layout_link.substring(0, 50)}...
               </a>
             </div>
+
+            {/* Sidebar ad */}
+            <AdUnit slot="base-detail-sidebar" size="rectangle" className="mx-auto" />
           </div>
         </div>
       </div>
@@ -340,7 +507,10 @@ export function BaseDetailPage() {
       {/* Similar Bases */}
       {similar && similar.length > 0 && (
         <section className="mt-12">
-          <h2 className="text-xl font-bold mb-6">{t.similarBases}</h2>
+          <h2 className="text-xl font-bold mb-2">{t.similarBases}</h2>
+          <p className="text-sm text-muted-foreground mb-6">
+            More TH{base.townhall} {base.base_type} layouts you might like
+          </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {similar.slice(0, 6).map(b => (
               <BaseCard key={b.id} base={b} />
