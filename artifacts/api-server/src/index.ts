@@ -1,3 +1,12 @@
+// Load .env.local in development (no-op if file absent or on Replit with Secrets)
+import { config as loadEnv } from "dotenv";
+import { resolve } from "path";
+if (process.env.NODE_ENV !== "production") {
+  // Look for .env.local two directories up (workspace root) and in the local dir
+  loadEnv({ path: resolve(process.cwd(), "../../.env.local"), override: false });
+  loadEnv({ path: resolve(process.cwd(), ".env.local"), override: false });
+}
+
 import app from "./app";
 import { logger } from "./lib/logger";
 
