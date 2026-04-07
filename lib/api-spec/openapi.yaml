@@ -300,6 +300,27 @@ paths:
                 items:
                   $ref: "#/components/schemas/Base"
 
+  /bases/{id}/analyze:
+    get:
+      operationId: getBaseAnalysis
+      tags: [bases]
+      summary: Get or generate AI analysis for a base
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: AI analysis content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BaseAnalysisResponse"
+        "404":
+          description: Base not found
+
   /bases/{id}/today-copies:
     get:
       operationId: getBaseTodayCopies
@@ -679,6 +700,8 @@ components:
           type: integer
         approved:
           type: boolean
+        ai_analysis:
+          type: string
         created_at:
           type: string
         updated_at:
@@ -833,6 +856,17 @@ components:
           type: integer
       required:
         - todayCopies
+
+    BaseAnalysisResponse:
+      type: object
+      properties:
+        analysis:
+          type: string
+        cached:
+          type: boolean
+      required:
+        - analysis
+        - cached
 
     BlogPost:
       type: object

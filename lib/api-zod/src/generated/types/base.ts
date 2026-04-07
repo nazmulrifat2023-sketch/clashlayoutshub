@@ -27,6 +27,7 @@ export interface Base {
   rating_count?: number;
   health_score?: number;
   approved?: boolean;
+  ai_analysis?: string;
   created_at?: string;
   updated_at?: string;
 }

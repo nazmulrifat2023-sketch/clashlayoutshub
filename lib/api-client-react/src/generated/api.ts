@@ -18,6 +18,7 @@ import type {
 
 import type {
   Base,
+  BaseAnalysisResponse,
   BasesListResponse,
   BlogListResponse,
   BlogPost,
@@ -1190,6 +1191,93 @@ export function useGetSimilarBases<
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getGetSimilarBasesQueryOptions(id, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Get or generate AI analysis for a base
+ */
+export const getGetBaseAnalysisUrl = (id: string) => {
+  return `/api/bases/${id}/analyze`;
+};
+
+export const getBaseAnalysis = async (
+  id: string,
+  options?: RequestInit,
+): Promise<BaseAnalysisResponse> => {
+  return customFetch<BaseAnalysisResponse>(getGetBaseAnalysisUrl(id), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetBaseAnalysisQueryKey = (id: string) => {
+  return [`/api/bases/${id}/analyze`] as const;
+};
+
+export const getGetBaseAnalysisQueryOptions = <
+  TData = Awaited<ReturnType<typeof getBaseAnalysis>>,
+  TError = ErrorType<void>,
+>(
+  id: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getBaseAnalysis>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetBaseAnalysisQueryKey(id);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getBaseAnalysis>>> = ({
+    signal,
+  }) => getBaseAnalysis(id, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getBaseAnalysis>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetBaseAnalysisQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getBaseAnalysis>>
+>;
+export type GetBaseAnalysisQueryError = ErrorType<void>;
+
+/**
+ * @summary Get or generate AI analysis for a base
+ */
+
+export function useGetBaseAnalysis<
+  TData = Awaited<ReturnType<typeof getBaseAnalysis>>,
+  TError = ErrorType<void>,
+>(
+  id: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getBaseAnalysis>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetBaseAnalysisQueryOptions(id, options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;

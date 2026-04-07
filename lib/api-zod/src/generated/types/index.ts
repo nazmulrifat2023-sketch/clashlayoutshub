@@ -7,6 +7,7 @@
  */
 
 export * from "./base";
+export * from "./baseAnalysisResponse";
 export * from "./basesListResponse";
 export * from "./blogListResponse";
 export * from "./blogPost";

@@ -22,6 +22,7 @@ export const basesTable = pgTable("bases", {
   rating_avg: decimal("rating_avg", { precision: 4, scale: 2 }).default("0").notNull(),
   rating_count: integer("rating_count").default(0).notNull(),
   approved: boolean("approved").default(true).notNull(),
+  ai_analysis: text("ai_analysis"),
   created_at: timestamp("created_at").defaultNow().notNull(),
   updated_at: timestamp("updated_at").defaultNow().notNull(),
 });

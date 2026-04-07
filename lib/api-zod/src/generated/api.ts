@@ -63,6 +63,7 @@ export const ListBasesResponse = zod.object({
       rating_count: zod.number().optional(),
       health_score: zod.number().optional(),
       approved: zod.boolean().optional(),
+      ai_analysis: zod.string().optional(),
       created_at: zod.string().optional(),
       updated_at: zod.string().optional(),
     }),
@@ -114,6 +115,7 @@ export const GetTrendingBasesResponseItem = zod.object({
   rating_count: zod.number().optional(),
   health_score: zod.number().optional(),
   approved: zod.boolean().optional(),
+  ai_analysis: zod.string().optional(),
   created_at: zod.string().optional(),
   updated_at: zod.string().optional(),
 });
@@ -143,6 +145,7 @@ export const GetBaseOfDayResponse = zod.object({
   rating_count: zod.number().optional(),
   health_score: zod.number().optional(),
   approved: zod.boolean().optional(),
+  ai_analysis: zod.string().optional(),
   created_at: zod.string().optional(),
   updated_at: zod.string().optional(),
 });
@@ -197,6 +200,7 @@ export const GetBaseResponse = zod.object({
   rating_count: zod.number().optional(),
   health_score: zod.number().optional(),
   approved: zod.boolean().optional(),
+  ai_analysis: zod.string().optional(),
   created_at: zod.string().optional(),
   updated_at: zod.string().optional(),
 });
@@ -244,6 +248,7 @@ export const UpdateBaseResponse = zod.object({
   rating_count: zod.number().optional(),
   health_score: zod.number().optional(),
   approved: zod.boolean().optional(),
+  ai_analysis: zod.string().optional(),
   created_at: zod.string().optional(),
   updated_at: zod.string().optional(),
 });
@@ -287,6 +292,7 @@ export const GetBaseBySlugResponse = zod.object({
   rating_count: zod.number().optional(),
   health_score: zod.number().optional(),
   approved: zod.boolean().optional(),
+  ai_analysis: zod.string().optional(),
   created_at: zod.string().optional(),
   updated_at: zod.string().optional(),
 });
@@ -342,10 +348,23 @@ export const GetSimilarBasesResponseItem = zod.object({
   rating_count: zod.number().optional(),
   health_score: zod.number().optional(),
   approved: zod.boolean().optional(),
+  ai_analysis: zod.string().optional(),
   created_at: zod.string().optional(),
   updated_at: zod.string().optional(),
 });
 export const GetSimilarBasesResponse = zod.array(GetSimilarBasesResponseItem);
+
+/**
+ * @summary Get or generate AI analysis for a base
+ */
+export const GetBaseAnalysisParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const GetBaseAnalysisResponse = zod.object({
+  analysis: zod.string(),
+  cached: zod.boolean(),
+});
 
 /**
  * @summary Get how many copies today
@@ -642,6 +661,7 @@ export const GetTopCopiedBasesResponseItem = zod.object({
   rating_count: zod.number().optional(),
   health_score: zod.number().optional(),
   approved: zod.boolean().optional(),
+  ai_analysis: zod.string().optional(),
   created_at: zod.string().optional(),
   updated_at: zod.string().optional(),
 });

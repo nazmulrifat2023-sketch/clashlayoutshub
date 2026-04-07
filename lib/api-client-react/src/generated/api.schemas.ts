@@ -34,6 +34,7 @@ export interface Base {
   rating_count?: number;
   health_score?: number;
   approved?: boolean;
+  ai_analysis?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -95,6 +96,11 @@ export interface CopyResponse {
 
 export interface TodayCopiesResponse {
   todayCopies: number;
+}
+
+export interface BaseAnalysisResponse {
+  analysis: string;
+  cached: boolean;
 }
 
 export interface BlogPost {
