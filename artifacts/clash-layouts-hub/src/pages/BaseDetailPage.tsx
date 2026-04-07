@@ -508,6 +508,14 @@ export function BaseDetailPage() {
                 {base.rating_count > 0 && (
                   <StatPill label="Rating" value={`★ ${Number(base.rating_avg).toFixed(1)}`} color="text-amber-500" />
                 )}
+                <button
+                  onClick={handleCopy}
+                  className="ml-auto shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-xl font-black text-white text-xs shadow-sm active:scale-95 transition-all whitespace-nowrap"
+                  style={{ background: `linear-gradient(135deg, ${GOLD}, #B8952E)` }}
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                  Copy Layout
+                </button>
               </div>
             </div>
 
