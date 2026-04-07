@@ -1,10 +1,17 @@
 User-agent: *
 Allow: /
 
-# Disallow admin-only paths
-Disallow: /admin
+# এগুলোতে গুগল বট ঢোকার দরকার নেই
 Disallow: /admin/
+Disallow: /admin
 Disallow: /api/
+Disallow: /login
+Disallow: /signup
+Disallow: /auth/
 
-# Sitemap
+# সার্চ প্যারামিটার ব্লক করা (Duplicate Content এড়াতে)
+Disallow: /*?*
+Disallow: /*&
+
+# তোমার সাইটম্যাপ
 Sitemap: https://clashlayoutshub.com/sitemap.xml
