@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
+import { useSEO } from "@/hooks/useSEO";
 import { Search, Flame, TrendingUp, Clock, Users, Database } from "lucide-react";
 import { useTranslation } from "@/contexts/LanguageContext";
 import { BaseCard } from "@/components/base/BaseCard";
@@ -27,6 +28,7 @@ function THCard({ level, count, topType }: { level: number; count: number; topTy
         <img
           src={imgSrc}
           alt={`Town Hall ${level}`}
+          loading="lazy"
           className="w-14 h-14 sm:w-16 sm:h-16 object-contain
                      drop-shadow-[0_4px_8px_rgba(0,0,0,0.25)]
                      transition-transform duration-200
@@ -58,6 +60,14 @@ export function HomePage() {
   const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   const [, setLocation] = useLocation();
+
+  useSEO({
+    title: "ClashLayoutsHub — Best Clash of Clans Base Layouts 2026",
+    description: "Browse 1,000+ verified Clash of Clans base layouts for every Town Hall level (TH3–TH18). War bases, farming bases, trophy pushing & more. Updated for 2026.",
+    ogTitle: "ClashLayoutsHub — Best CoC Base Layouts 2026",
+    ogDescription: "Find and copy the best Clash of Clans base layouts for TH3–TH18. Verified, ranked by health score and community votes.",
+    canonical: "https://clashlayoutshub.com/",
+  });
 
   const { data: stats } = useGetSiteStats();
   const { data: trending } = useGetTrendingBases();
@@ -236,6 +246,7 @@ export function HomePage() {
                   <div className="aspect-[16/9] overflow-hidden bg-muted">
                     {post.featured_image && (
                       <img src={post.featured_image} alt={post.title}
+                        loading="lazy"
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                     )}
                   </div>

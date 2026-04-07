@@ -98,7 +98,7 @@ export function AdminBases() {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         {base.image_url ? (
-                          <img src={base.image_url} alt="" className="w-8 h-8 rounded-md object-cover" />
+                          <img src={base.image_url} alt="" className="w-8 h-8 rounded-md object-cover" loading="lazy" />
                         ) : (
                           <div className="w-8 h-8 bg-muted rounded-md flex items-center justify-center">
                             <Shield className="w-4 h-4 text-muted-foreground" />

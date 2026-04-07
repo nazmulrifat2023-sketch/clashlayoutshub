@@ -114,7 +114,7 @@ export function Header() {
                       <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                     </div>
                     <Link
-                      href="/my-submissions"
+                      href="/profile"
                       onClick={() => setUserMenuOpen(false)}
                       className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors"
                     >
@@ -207,7 +207,7 @@ export function Header() {
                     </div>
                   </div>
                   <Link
-                    href="/my-submissions"
+                    href="/profile"
                     className="flex items-center gap-2 py-2 text-sm font-medium text-foreground"
                     onClick={() => setMobileOpen(false)}
                   >

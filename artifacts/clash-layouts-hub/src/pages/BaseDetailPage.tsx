@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSEO } from "@/hooks/useSEO";
 import { useParams, Link } from "wouter";
 import {
   Copy, Star, Shield, ChevronRight, MessageSquare, AlertTriangle,
@@ -260,15 +261,18 @@ export function BaseDetailPage() {
   const addComment = useAddComment();
   const { register, handleSubmit, reset } = useForm<{ user_name: string; content: string }>();
 
-  /* SEO: dynamic title + meta */
-  useEffect(() => {
-    if (!base) return;
-    const title = `Best TH${base.townhall} ${base.base_type} Base Link 2026 — ${base.title} | ClashLayoutsHub`;
-    document.title = title;
-    let meta = document.querySelector('meta[name="description"]') as HTMLMetaElement | null;
-    if (!meta) { meta = document.createElement("meta"); meta.name = "description"; document.head.appendChild(meta); }
-    meta.content = `Download the best TH${base.townhall} ${base.base_type} base link 2026. ${base.title} — ${base.win_rate}% win rate, tested by ${(base.copies ?? 0).toLocaleString()} players. One-click copy layout!`;
-  }, [base]);
+  /* SEO: dynamic title + meta + OG */
+  useSEO({
+    title: base
+      ? `Best TH${base.townhall} ${base.base_type} Base Link 2026 — ${base.title}`
+      : undefined,
+    description: base
+      ? `Download the best TH${base.townhall} ${base.base_type} base link 2026. ${base.title} — ${base.win_rate}% win rate, tested by ${(base.copies ?? 0).toLocaleString()} players. One-click copy layout!`
+      : undefined,
+    ogImage: base?.image_url || undefined,
+    ogType: "article",
+    noSuffix: true,
+  });
 
   /* Track view + recently viewed */
   useEffect(() => {

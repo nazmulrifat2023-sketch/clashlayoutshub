@@ -109,7 +109,7 @@ function ImageDropzone({
     <div className="space-y-2">
       {preview ? (
         <div className="relative rounded-xl overflow-hidden border border-border">
-          <img src={preview} alt="Preview" className="w-full h-48 object-cover" />
+          <img src={preview} alt="Preview" className="w-full h-48 object-cover" loading="lazy" />
           {uploading && (
             <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
               <Loader2 className="w-6 h-6 text-white animate-spin" />

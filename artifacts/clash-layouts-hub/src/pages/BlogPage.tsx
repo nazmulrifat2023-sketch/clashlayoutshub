@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "wouter";
+import { useSEO } from "@/hooks/useSEO";
 import { CalendarDays, Eye, ArrowRight, BookOpen } from "lucide-react";
 import { useListBlogPosts } from "@workspace/api-client-react";
 
@@ -46,6 +47,7 @@ function BlogCard({ post }: { post: any }) {
           <img
             src={post.featured_image}
             alt={post.title}
+            loading="lazy"
             className="w-full h-full object-cover transition-transform duration-500 ease-out
                        group-hover:scale-105"
           />
@@ -138,6 +140,14 @@ function CardSkeleton() {
 export function BlogPage() {
   const [page, setPage] = useState(1);
   const { data, isLoading } = useListBlogPosts({ page, limit: 9 });
+
+  useSEO({
+    title: "Clash of Clans Blog — Pro Guides & Meta Strategies 2026 | ClashLayoutsHub",
+    description: "Expert CoC guides: base breakdowns, war strategies, farming tips, and Town Hall meta analysis. Updated every week for the 2026 meta.",
+    ogTitle: "Clash of Clans Blog — Pro Guides & Strategies 2026",
+    ogDescription: "Pro base guides, war strategies, and meta breakdowns for every Town Hall level. Stay ahead of the CoC meta with ClashLayoutsHub.",
+    canonical: "https://clashlayoutshub.com/blog",
+  });
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 pb-16">

@@ -208,7 +208,7 @@ export function ProfilePage() {
                 <Link key={base.id} href={`/base/${base.slug}`}>
                   <div className="bg-white rounded-xl border border-border hover:border-primary/30 hover:shadow-md transition-all overflow-hidden group">
                     {base.image_url ? (
-                      <img src={base.image_url} alt={base.title} className="w-full h-32 object-cover" />
+                      <img src={base.image_url} alt={base.title} className="w-full h-32 object-cover" loading="lazy" />
                     ) : (
                       <div className="w-full h-32 bg-muted/40 flex items-center justify-center">
                         <Shield className="w-8 h-8 text-muted-foreground/30" />

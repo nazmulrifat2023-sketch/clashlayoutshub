@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, Link } from "wouter";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 import { useTranslation } from "@/contexts/LanguageContext";
+import { useSEO } from "@/hooks/useSEO";
 import { BaseCard } from "@/components/base/BaseCard";
 import { BaseFilters } from "@/components/base/BaseFilters";
 import { AdUnit } from "@/components/ads/AdUnit";
@@ -13,6 +14,11 @@ export function THPage() {
   const thLevel = parseInt(level || "9");
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState({ base_type: "", difficulty: "", sort: "latest" });
+
+  useSEO({
+    title: `TH${thLevel} Base Layouts 2026 — Best Town Hall ${thLevel} Bases`,
+    description: `Browse the best Town Hall ${thLevel} base layouts for War, Farming, Trophy, and Hybrid in 2026. One-click copy link to Clash of Clans. Updated for the current meta.`,
+  });
 
   const { data, isLoading } = useListBases({
     townhall: thLevel,

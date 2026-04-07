@@ -2,6 +2,7 @@ import { useParams, Link } from "wouter";
 import { ChevronRight, Clock, Eye, CalendarDays } from "lucide-react";
 import { useGetBlogPost } from "@workspace/api-client-react";
 import { AdUnit } from "@/components/ads/AdUnit";
+import { useSEO } from "@/hooks/useSEO";
 
 const GOLD = "#D4AF37";
 
@@ -18,6 +19,19 @@ function splitContent(html: string): [string, string] {
 export function BlogDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const { data: post, isLoading } = useGetBlogPost(slug || "");
+
+  const plainText = post?.content
+    ? post.content.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim()
+    : "";
+
+  useSEO({
+    title: post?.title,
+    description: post
+      ? plainText.slice(0, 155) + (plainText.length > 155 ? "…" : "")
+      : undefined,
+    ogImage: post?.cover_image || undefined,
+    ogType: "article",
+  });
 
   /* ── Loading skeleton ── */
   if (isLoading) {
@@ -98,6 +112,8 @@ export function BlogDetailPage() {
             src={post.featured_image}
             alt={post.title}
             className="w-full h-full object-cover"
+            loading="eager"
+            fetchPriority="high"
           />
         </div>
       )}

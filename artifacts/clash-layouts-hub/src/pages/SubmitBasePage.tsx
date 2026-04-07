@@ -253,6 +253,7 @@ export function SubmitBasePage() {
                 src={imagePreview}
                 alt="Base screenshot preview"
                 className="w-full object-cover max-h-56"
+                loading="lazy"
                 onError={() => setImageError(true)}
               />
               <button

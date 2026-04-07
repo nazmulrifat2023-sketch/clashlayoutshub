@@ -313,6 +313,7 @@ export function AdminBlogForm() {
                 src={imagePreview}
                 alt="Preview"
                 className="w-full h-48 object-cover"
+                loading="lazy"
                 onError={() => setImagePreview("")}
               />
               <button

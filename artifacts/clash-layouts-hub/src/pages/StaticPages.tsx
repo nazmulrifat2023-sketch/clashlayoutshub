@@ -250,13 +250,90 @@ export function AboutPage() {
 
 export function NotFoundPage() {
   return (
-    <div className="min-h-[60vh] flex flex-col items-center justify-center px-4 text-center">
-      <div className="text-8xl font-black text-muted-foreground/20 mb-4">404</div>
-      <h1 className="text-2xl font-bold mb-3">Page Not Found</h1>
-      <p className="text-muted-foreground mb-6">The page you're looking for doesn't exist or has been moved.</p>
-      <Link href="/" className="px-6 py-2.5 bg-primary text-white rounded-xl font-semibold hover:bg-primary/90 transition-colors">
-        Go Home
-      </Link>
+    <div className="min-h-[70vh] flex flex-col items-center justify-center px-4 text-center py-16 bg-gradient-to-b from-background to-muted/30">
+
+      {/* Broken Shield / Skull illustration */}
+      <div className="relative mb-6 select-none">
+        {/* Outer glow */}
+        <div
+          className="absolute inset-0 rounded-full blur-3xl opacity-20"
+          style={{ backgroundColor: GOLD }}
+        />
+        {/* Shield wrapper */}
+        <div className="relative w-32 h-32 flex items-center justify-center">
+          {/* Large shield background */}
+          <div
+            className="absolute inset-0 rounded-full opacity-10"
+            style={{ backgroundColor: GOLD }}
+          />
+          <div
+            className="relative flex items-center justify-center w-24 h-24 rounded-full"
+            style={{ background: `linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)`, border: `3px solid ${GOLD}40` }}
+          >
+            {/* Crossed swords + skull */}
+            <div className="flex flex-col items-center gap-1">
+              <span className="text-4xl leading-none" role="img" aria-label="skull">💀</span>
+              <span className="text-xs font-black tracking-widest" style={{ color: GOLD, fontSize: 10 }}>DESTROYED</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 404 badge */}
+      <div
+        className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-black tracking-widest mb-5"
+        style={{ backgroundColor: `${GOLD}15`, color: GOLD, border: `1px solid ${GOLD}30` }}
+      >
+        <Flame className="w-3.5 h-3.5" />
+        ERROR 404 — BASE DESTROYED
+        <Flame className="w-3.5 h-3.5" />
+      </div>
+
+      <h1 className="text-3xl sm:text-4xl font-black mb-3 tracking-tight">
+        Village Not Found!
+      </h1>
+      <p className="text-muted-foreground text-base sm:text-lg mb-2 max-w-md leading-relaxed">
+        This base was <strong>3-starred</strong> and wiped off the map.
+        The page you're looking for doesn't exist or has been moved.
+      </p>
+      <p className="text-sm text-muted-foreground/60 mb-8">
+        Even your Eagle Artillery couldn't save it. 🏹
+      </p>
+
+      {/* Actions */}
+      <div className="flex flex-col sm:flex-row items-center gap-3">
+        <Link
+          href="/"
+          className="px-6 py-3 text-white rounded-xl font-bold text-sm transition-all hover:opacity-90 active:scale-95 shadow-md"
+          style={{ backgroundColor: GOLD }}
+        >
+          🏠 Return to Base Camp
+        </Link>
+        <Link
+          href="/blog"
+          className="px-6 py-3 border border-border rounded-xl font-semibold text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+        >
+          📖 Read the Blog
+        </Link>
+      </div>
+
+      {/* Quick TH links */}
+      <div className="mt-12 text-center">
+        <p className="text-xs text-muted-foreground/60 mb-3 uppercase tracking-widest font-medium">
+          Quick access
+        </p>
+        <div className="flex flex-wrap justify-center gap-2">
+          {[9, 10, 11, 12, 13, 14, 15, 16].map(th => (
+            <Link
+              key={th}
+              href={`/th/${th}`}
+              className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-border hover:border-primary hover:text-primary transition-colors"
+            >
+              TH{th}
+            </Link>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
