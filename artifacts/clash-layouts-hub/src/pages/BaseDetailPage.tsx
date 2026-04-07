@@ -6,6 +6,7 @@ import {
   TrendingUp, Zap, BookOpen, ArrowRight, Eye, CheckCircle2, Info,
 } from "lucide-react";
 import { useTranslation } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { BaseCard } from "@/components/base/BaseCard";
 import { ReportModal } from "@/components/base/ReportModal";
 import { AdUnit } from "@/components/ads/AdUnit";
@@ -248,6 +249,7 @@ export function BaseDetailPage() {
   const [reportOpen, setReportOpen] = useState(false);
   const [rating, setRating] = useState(0);
 
+  const { user } = useAuth();
   const { data: base, isLoading } = useGetBaseBySlug(slug || "");
   const { data: similar } = useGetSimilarBases(base?.id || "", { query: { enabled: !!base?.id } });
   const { data: comments, refetch: refetchComments } = useListComments(base?.id || "", { query: { enabled: !!base?.id } });
@@ -558,71 +560,113 @@ export function BaseDetailPage() {
             </div>
 
             {/* Comments Section */}
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-              <h2 className="text-lg font-black text-gray-900 mb-5 flex items-center gap-2">
-                <MessageSquare className="w-5 h-5 text-primary" />
-                {t.comments}
-                <span className="ml-1 text-sm font-semibold text-gray-400">({comments?.length ?? 0})</span>
-              </h2>
+            {(() => {
+              const SAMPLE_COMMENTS = [
+                { id: "s1", user_name: "ClashPro_Rahim", content: "Used this for war and held 3 attacks perfectly. The compartment placement is genius — troops keep getting funnelled away from the TH. Highly recommend for serious war clans!", rating: 5, created_at: "2026-03-21" },
+                { id: "s2", user_name: "QueenWalker99", content: "Solid design. Lost one star in a mirror match but the overall defence rate has been great. Been using it for two seasons now.", rating: 4, created_at: "2026-03-18" },
+                { id: "s3", user_name: "TH_Strategist", content: "Good layout overall. I'd suggest moving the Scattershots a bit further apart, but as-is it's definitely top-tier for the current meta.", rating: 4, created_at: "2026-03-15" },
+              ];
+              const displayComments = comments?.length ? comments : SAMPLE_COMMENTS;
+              const isSample = !comments?.length;
 
-              {/* Comment form */}
-              <form onSubmit={handleSubmit(onSubmitComment)} className="bg-gray-50 border border-gray-100 rounded-xl p-4 mb-5">
-                <h3 className="font-bold text-sm text-gray-800 mb-4">{t.leaveComment}</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
-                  <input
-                    {...register("user_name", { required: true })}
-                    placeholder={t.yourName}
-                    className="px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                  />
-                  <div>
-                    <label className="block text-xs text-gray-400 mb-1.5">{t.rating} (optional)</label>
-                    <StarRating value={rating} onChange={setRating} />
+              return (
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                  <h2 className="text-lg font-black text-gray-900 mb-5 flex items-center gap-2">
+                    <MessageSquare className="w-5 h-5 text-primary" />
+                    {t.comments}
+                    <span className="ml-1 text-sm font-semibold text-gray-400">
+                      ({comments?.length ?? 0})
+                    </span>
+                  </h2>
+
+                  {/* Conditional: form for logged-in users, prompt for guests */}
+                  {user ? (
+                    <form onSubmit={handleSubmit(onSubmitComment)} className="bg-gray-50 border border-gray-100 rounded-xl p-4 mb-5">
+                      <h3 className="font-bold text-sm text-gray-800 mb-4">{t.leaveComment}</h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                        <input
+                          {...register("user_name", { required: true })}
+                          placeholder={t.yourName}
+                          className="px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                        />
+                        <div>
+                          <label className="block text-xs text-gray-400 mb-1.5">{t.rating} (optional)</label>
+                          <StarRating value={rating} onChange={setRating} />
+                        </div>
+                      </div>
+                      <textarea
+                        {...register("content", { required: true })}
+                        placeholder={t.yourComment}
+                        rows={3}
+                        className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none mb-3 transition-all"
+                      />
+                      <button
+                        type="submit"
+                        disabled={addComment.isPending}
+                        className="px-5 py-2.5 bg-primary hover:bg-primary/90 text-white rounded-xl text-sm font-bold transition-colors disabled:opacity-50 active:scale-95"
+                      >
+                        {addComment.isPending ? "Posting…" : t.submitComment}
+                      </button>
+                    </form>
+                  ) : (
+                    /* Guest prompt */
+                    <div className="rounded-2xl border mb-5 overflow-hidden" style={{ borderColor: `${GOLD}40` }}>
+                      <div className="px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-4" style={{ background: `linear-gradient(135deg, ${GOLD}0d 0%, #fffbea 100%)` }}>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Users className="w-4 h-4 shrink-0" style={{ color: GOLD }} />
+                            <span className="font-black text-sm text-gray-900">Join the community to share your experience!</span>
+                          </div>
+                          <p className="text-xs text-gray-500 leading-relaxed">
+                            Create a free account to post comments, rate layouts, and save your favourite bases.
+                          </p>
+                        </div>
+                        <Link href="/login" className="shrink-0 inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-bold text-white shadow-sm transition-all hover:opacity-90 active:scale-95 whitespace-nowrap"
+                          style={{ background: `linear-gradient(135deg, ${GOLD} 0%, #b8860b 100%)` }}>
+                          Login / Sign Up
+                        </Link>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Comment list */}
+                  <div className="space-y-3">
+                    {isSample && (
+                      <p className="text-xs text-gray-400 text-center pb-1 flex items-center justify-center gap-1">
+                        <CheckCircle2 className="w-3 h-3" />
+                        Sample reviews — real comments will appear here once posted
+                      </p>
+                    )}
+                    {displayComments.map(comment => (
+                      <div key={comment.id} className={`rounded-xl p-4 border ${isSample ? "bg-gray-50/60 border-dashed border-gray-200" : "bg-gray-50 border-gray-100"}`}>
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-black shrink-0"
+                              style={{ background: `linear-gradient(135deg, ${GOLD} 0%, #b8860b 100%)` }}>
+                              {(comment.user_name ?? "?")[0].toUpperCase()}
+                            </div>
+                            <div>
+                              <span className="font-bold text-sm text-gray-900">{comment.user_name}</span>
+                              <span className="text-xs text-gray-400 ml-2">
+                                {new Date(comment.created_at || "").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                              </span>
+                            </div>
+                          </div>
+                          {comment.rating && (
+                            <div className="flex gap-0.5 shrink-0">
+                              {Array.from({ length: 5 }).map((_, i) => (
+                                <Star key={i} className={`w-3.5 h-3.5 ${i < (comment.rating ?? 0) ? "fill-yellow-400 text-yellow-400" : "text-gray-200"}`} />
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-600 leading-relaxed pl-9">{comment.content}</p>
+                      </div>
+                    ))}
                   </div>
                 </div>
-                <textarea
-                  {...register("content", { required: true })}
-                  placeholder={t.yourComment}
-                  rows={3}
-                  className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none mb-3 transition-all"
-                />
-                <button
-                  type="submit"
-                  disabled={addComment.isPending}
-                  className="px-5 py-2.5 bg-primary hover:bg-primary/90 text-white rounded-xl text-sm font-bold transition-colors disabled:opacity-50 active:scale-95"
-                >
-                  {addComment.isPending ? "Posting…" : t.submitComment}
-                </button>
-              </form>
-
-              {/* Comment list */}
-              <div className="space-y-3">
-                {comments?.map(comment => (
-                  <div key={comment.id} className="bg-gray-50 border border-gray-100 rounded-xl p-4">
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <span className="font-bold text-sm text-gray-900">{comment.user_name}</span>
-                        <span className="text-xs text-gray-400 ml-2">
-                          {new Date(comment.created_at || "").toLocaleDateString()}
-                        </span>
-                      </div>
-                      {comment.rating && (
-                        <div className="flex gap-0.5">
-                          {Array.from({ length: 5 }).map((_, i) => (
-                            <Star key={i} className={`w-3.5 h-3.5 ${i < (comment.rating ?? 0) ? "fill-yellow-400 text-yellow-400" : "text-gray-200"}`} />
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    <p className="text-sm text-gray-600 leading-relaxed">{comment.content}</p>
-                  </div>
-                ))}
-                {!comments?.length && (
-                  <p className="text-center text-gray-400 text-sm py-8">
-                    No comments yet — be the first to share your experience!
-                  </p>
-                )}
-              </div>
-            </div>
+              );
+            })()}
           </article>
 
           {/* ════ Sidebar ════ */}
