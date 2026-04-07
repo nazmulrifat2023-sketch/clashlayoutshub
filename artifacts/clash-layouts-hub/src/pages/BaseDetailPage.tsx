@@ -7,7 +7,7 @@ import {
 import { useTranslation } from "@/contexts/LanguageContext";
 import { BaseCard } from "@/components/base/BaseCard";
 import { ReportModal } from "@/components/base/ReportModal";
-import { AdUnit } from "@/components/base/AdUnit";
+import { AdUnit } from "@/components/ads/AdUnit";
 import {
   useGetBaseBySlug, useIncrementBaseCopy, useIncrementBaseView,
   useGetSimilarBases, useListComments, useAddComment, useGetBaseTodayCopies,
@@ -294,7 +294,7 @@ export function BaseDetailPage() {
           </div>
 
           {/* Ad unit below image */}
-          <AdUnit slot="base-detail-below-image" size="banner" className="mb-5" />
+          <AdUnit slot="base-detail-below-image" className="mb-5" />
 
           {/* Today copies callout */}
           {todayCopies && todayCopies.todayCopies > 0 && (
@@ -309,6 +309,7 @@ export function BaseDetailPage() {
           <div className="prose prose-sm max-w-none mb-8">
             <h2 className="text-lg font-bold mb-3">About This Base</h2>
             <p className="text-muted-foreground leading-relaxed">{base.description}</p>
+            <AdUnit slot="base-detail-description-mid" className="my-5" />
           </div>
 
           {/* Key Features */}
@@ -499,7 +500,7 @@ export function BaseDetailPage() {
             </div>
 
             {/* Sidebar ad */}
-            <AdUnit slot="base-detail-sidebar" size="rectangle" className="mx-auto" />
+            <AdUnit slot="base-detail-sidebar" className="mx-auto" />
           </div>
         </div>
       </div>

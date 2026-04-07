@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, Link } from "wouter";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 import { useTranslation } from "@/contexts/LanguageContext";
 import { BaseCard } from "@/components/base/BaseCard";
 import { BaseFilters } from "@/components/base/BaseFilters";
+import { AdUnit } from "@/components/ads/AdUnit";
 import { useListBases } from "@workspace/api-client-react";
 
 export function THPage() {
@@ -53,6 +54,9 @@ export function THPage() {
         </p>
       </div>
 
+      {/* Ad above filters */}
+      <AdUnit slot="th-above-filters" className="mb-6" />
+
       {/* Filters */}
       <div className="mb-6 p-4 bg-white rounded-xl border border-border">
         <BaseFilters filters={filters} onFilterChange={handleFilterChange} />
@@ -72,15 +76,17 @@ export function THPage() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {data.bases.map((base, idx) => (
-              <div key={base.id}>
-                <BaseCard base={base} />
-                {/* Ad slot every 9th base */}
+              <React.Fragment key={base.id}>
+                <div>
+                  <BaseCard base={base} />
+                </div>
+                {/* Ad slot every 9th base - spans full width */}
                 {(idx + 1) % 9 === 0 && (
-                  <div className="col-span-full bg-muted/50 rounded-xl h-16 flex items-center justify-center text-xs text-muted-foreground border border-border/50 mt-4">
-                    Advertisement
+                  <div className="col-span-full">
+                    <AdUnit slot={`th-grid-${Math.floor(idx / 9)}`} />
                   </div>
                 )}
-              </div>
+              </React.Fragment>
             ))}
           </div>
 

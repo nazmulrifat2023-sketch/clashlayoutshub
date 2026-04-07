@@ -1,6 +1,8 @@
+import React from "react";
 import { useParams, Link } from "wouter";
 import { ChevronRight, Clock, Eye } from "lucide-react";
 import { useGetBlogPost } from "@workspace/api-client-react";
+import { AdUnit } from "@/components/ads/AdUnit";
 
 export function BlogDetailPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -60,9 +62,16 @@ export function BlogDetailPage() {
 
       <div className="prose prose-sm max-w-none">
         {post.content.split("\n\n").map((paragraph, i) => (
-          <p key={i} className="text-muted-foreground leading-relaxed mb-4">{paragraph}</p>
+          <React.Fragment key={i}>
+            <p className="text-muted-foreground leading-relaxed mb-4">{paragraph}</p>
+            {i === 0 && (
+              <AdUnit slot="blog-after-intro" className="my-6" />
+            )}
+          </React.Fragment>
         ))}
       </div>
+
+      <AdUnit slot="blog-pre-conclusion" className="my-8" />
 
       <div className="mt-10 pt-8 border-t border-border">
         <Link href="/blog" className="text-primary hover:underline text-sm font-medium">
