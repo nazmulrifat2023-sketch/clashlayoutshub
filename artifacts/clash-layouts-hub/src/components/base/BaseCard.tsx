@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "wouter";
 import { Copy, Eye, Star, Flame, Shield, AlertTriangle, MessageSquare } from "lucide-react";
 import { useTranslation } from "@/contexts/LanguageContext";
-import { useGetBaseTodayCopies, useIncrementBaseCopy } from "@workspace/api-client-react";
+import { useGetBaseTodayCopies } from "@workspace/api-client-react";
 import type { Base } from "@workspace/api-client-react";
 import { ReportModal } from "./ReportModal";
 
@@ -37,15 +37,7 @@ function TodayCopies({ baseId }: { baseId: string }) {
 export function BaseCard({ base, showTrending }: BaseCardProps) {
   const { t } = useTranslation();
   const [reportOpen, setReportOpen] = useState(false);
-  const incrementCopy = useIncrementBaseCopy();
-
   const healthScore = base.health_score ?? Math.max(0, (base.win_rate ?? 80) - (base.report_count ?? 0) * 5);
-
-  function handleCopy(e: React.MouseEvent) {
-    e.preventDefault();
-    incrementCopy.mutate({ id: base.id });
-    window.open(base.layout_link, "_blank", "noopener,noreferrer");
-  }
 
   return (
     <>
@@ -80,16 +72,6 @@ export function BaseCard({ base, showTrending }: BaseCardProps) {
             <HealthBadge score={healthScore} />
           </div>
 
-          {/* Quick copy button */}
-          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-            <button
-              onClick={handleCopy}
-              className="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg font-semibold text-sm flex items-center gap-2 transition-colors"
-            >
-              <Copy className="w-4 h-4" />
-              {t.copyLayout}
-            </button>
-          </div>
         </Link>
 
         {/* Content */}
