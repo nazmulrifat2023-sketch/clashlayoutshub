@@ -6,6 +6,7 @@ import commentsRouter from "./comments";
 import reportsRouter from "./reports";
 import submissionsRouter from "./submissions";
 import analyticsRouter from "./analytics";
+import uploadRouter from "./upload";
 
 const router: IRouter = Router();
 
@@ -16,5 +17,6 @@ router.use(commentsRouter);
 router.use(reportsRouter);
 router.use(submissionsRouter);
 router.use(analyticsRouter);
+router.use(uploadRouter);
 
 export default router;
