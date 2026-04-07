@@ -28,7 +28,7 @@ router.get("/sitemap.xml", async (_req: Request, res: Response): Promise<void> =
     const bases = await db
       .select({ slug: basesTable.slug, updated_at: basesTable.created_at })
       .from(basesTable)
-      .where(eq(basesTable.is_approved, true))
+      .where(and(eq(basesTable.is_active, true), eq(basesTable.approved, true)))
       .limit(5000);
 
     const urls: string[] = [];
