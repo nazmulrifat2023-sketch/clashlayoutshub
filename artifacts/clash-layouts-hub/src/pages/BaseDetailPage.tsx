@@ -793,19 +793,30 @@ export function BaseDetailPage() {
                 </dl>
               </div>
 
-              {/* Layout link */}
-              <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
-                <h3 className="font-bold mb-2 text-sm text-gray-900">Layout Link</h3>
-                <a
-                  href={base.layout_link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs text-primary break-all flex items-start gap-1.5 hover:underline"
-                >
-                  <ExternalLink className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
-                  {base.layout_link.substring(0, 50)}…
-                </a>
-              </div>
+              {/* Pro Tips sidebar card */}
+              {base.pro_tips && base.pro_tips.length > 0 && (
+                <div className="bg-white rounded-2xl shadow-sm overflow-hidden" style={{ border: `2px solid ${GOLD}` }}>
+                  <div className="flex items-center gap-2.5 px-4 py-3 border-b" style={{ borderColor: `${GOLD}40`, background: `linear-gradient(135deg, ${GOLD}12 0%, #fffdf0 100%)` }}>
+                    <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${GOLD}25` }}>
+                      <Zap className="w-3.5 h-3.5" style={{ color: GOLD }} />
+                    </div>
+                    <div>
+                      <h3 className="font-black text-sm text-gray-900 leading-none">Pro Tips</h3>
+                      <p className="text-[10px] text-gray-400 mt-0.5">Expert defense strategy</p>
+                    </div>
+                  </div>
+                  <ul className="px-4 py-4 space-y-3">
+                    {base.pro_tips.map((tip, i) => (
+                      <li key={i} className="flex items-start gap-2.5 text-xs text-gray-600 leading-relaxed">
+                        <span className="shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black text-white mt-0.5" style={{ background: `linear-gradient(135deg, ${GOLD} 0%, #b8860b 100%)` }}>
+                          {i + 1}
+                        </span>
+                        {tip}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
               {/* Sidebar ad */}
               <AdUnit slot="base-detail-sidebar" />
