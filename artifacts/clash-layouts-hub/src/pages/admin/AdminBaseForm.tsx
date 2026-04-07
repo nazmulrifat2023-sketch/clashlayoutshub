@@ -17,7 +17,7 @@ const schema = z.object({
   difficulty: z.string().min(1),
   image_url: z.string().optional().or(z.literal("")),
   layout_link: z.string().includes("link.clashofclans.com", { message: "Must be a Clash of Clans link" }),
-  description: z.string().min(200, "Description must be at least 200 characters"),
+  description: z.string().min(200, "Description must be at least 200 characters (aim for 550–670)"),
   win_rate: z.coerce.number().min(0).max(100),
   key_features: z.string().optional(),
   best_against: z.string().optional(),
@@ -41,6 +41,17 @@ const FEATURE_CHIPS = [
 ];
 
 type LinkStatus = "idle" | "checking" | "ok" | "fail";
+
+function normalizeImgurUrl(url: string): string {
+  if (!url) return url;
+  // https://imgur.com/azZ7QUw  →  https://i.imgur.com/azZ7QUw.png
+  // https://imgur.com/a/ALBUMID or gallery links — leave unchanged
+  const match = url.match(/^https?:\/\/(?:www\.)?imgur\.com\/([a-zA-Z0-9]{5,10})(?:\.[a-zA-Z]+)?$/);
+  if (match) {
+    return `https://i.imgur.com/${match[1]}.png`;
+  }
+  return url;
+}
 
 function ImageDropzone({
   value,
@@ -147,8 +158,13 @@ function ImageDropzone({
       <input
         type="text"
         value={preview}
-        onChange={(e) => { setPreview(e.target.value); onChange(e.target.value); }}
-        placeholder="Or paste an image URL…"
+        onChange={(e) => {
+          const raw = e.target.value;
+          const normalized = normalizeImgurUrl(raw);
+          setPreview(normalized);
+          onChange(normalized);
+        }}
+        placeholder="Or paste an image URL (Imgur, Unsplash, etc.)…"
         className="w-full px-3 py-2 border border-border rounded-lg text-xs text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
       />
     </div>
@@ -267,10 +283,12 @@ export function AdminBaseForm() {
       const json = await res.json();
       if (json.description) {
         setValue("description", json.description, { shouldValidate: true });
-        toast.success("Description generated!");
+        toast.success(`Description generated! (${json.description.length} chars)`);
+      } else {
+        toast.error(json.error || "AI returned no description");
       }
     } catch {
-      toast.error("Failed to generate description");
+      toast.error("Failed to connect to AI — try again");
     } finally {
       setSuggestingAi(false);
     }
@@ -459,14 +477,17 @@ export function AdminBaseForm() {
               : <span />}
             <span
               className={`text-xs font-medium tabular-nums ${
-                description.length >= 200
+                description.length >= 550 && description.length <= 670
                   ? "text-green-600"
-                  : description.length >= 100
+                  : description.length >= 400
                   ? "text-yellow-600"
                   : "text-muted-foreground"
               }`}
             >
-              {description.length} / 200
+              {description.length} / 550–670
+              {description.length >= 550 && description.length <= 670 && (
+                <span className="ml-1">✓</span>
+              )}
             </span>
           </div>
         </div>
