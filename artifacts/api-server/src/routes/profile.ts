@@ -20,7 +20,7 @@ router.get("/user/saved-bases", async (req: Request, res: Response): Promise<voi
       base_type: basesTable.base_type,
       image_url: basesTable.image_url,
       win_rate: basesTable.win_rate,
-      copy_count: basesTable.copy_count,
+      copy_count: basesTable.copies,
       slug: basesTable.slug,
     })
     .from(savedBasesTable)
