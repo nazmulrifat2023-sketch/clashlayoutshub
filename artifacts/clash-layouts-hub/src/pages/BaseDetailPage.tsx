@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import { useSEO } from "@/hooks/useSEO";
 import { useParams, Link } from "wouter";
 import {
@@ -243,6 +243,18 @@ function StatPill({ label, value, color }: { label: string; value: string; color
   );
 }
 
+function StatCard({
+  label, value, color, bg, icon,
+}: { label: string; value: string; color: string; bg: string; icon: ReactNode }) {
+  return (
+    <div className={`flex flex-col items-center justify-center py-3 px-2 rounded-2xl ${bg}`}>
+      <div className="mb-1 opacity-80">{icon}</div>
+      <span className={`text-sm font-black leading-tight ${color}`}>{value}</span>
+      <span className="text-[10px] text-gray-500 font-medium mt-0.5 text-center">{label}</span>
+    </div>
+  );
+}
+
 /* ─── Main Page ─── */
 export function BaseDetailPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -442,26 +454,66 @@ export function BaseDetailPage() {
                 </div>
               </div>
 
-              {/* Quick stats row */}
-              <div className="px-4 py-3 bg-gray-50 border-t border-gray-100 flex items-center gap-2 overflow-x-auto scrollbar-hide">
-                <StatPill label="Win Rate" value={`${base.win_rate ?? 80}%`} color="text-emerald-600" />
-                <StatPill
-                  label="Health"
-                  value={`${healthScore}/100`}
-                  color={healthScore >= 70 ? "text-green-600" : healthScore >= 40 ? "text-yellow-600" : "text-red-600"}
-                />
-                <StatPill label="Copies" value={(base.copies ?? 0).toLocaleString()} />
-                <StatPill label="Views" value={(base.views ?? 0).toLocaleString()} />
-                {base.rating_count > 0 && (
-                  <StatPill label="Rating" value={`★ ${Number(base.rating_avg).toFixed(1)}`} color="text-amber-500" />
-                )}
+              {/* Quick stats grid — no scroll, mobile-first */}
+              <div className="px-4 pt-3 pb-4 bg-gray-50 border-t border-gray-100">
+                <div className="grid grid-cols-3 gap-2 mb-3">
+                  <StatCard
+                    label="Win Rate"
+                    value={`${base.win_rate ?? 80}%`}
+                    color="text-emerald-700"
+                    bg="bg-emerald-50"
+                    icon={<TrendingUp className="w-4 h-4 text-emerald-500" />}
+                  />
+                  <StatCard
+                    label="Health"
+                    value={`${healthScore}/100`}
+                    color={healthScore >= 70 ? "text-blue-700" : healthScore >= 40 ? "text-yellow-700" : "text-red-700"}
+                    bg={healthScore >= 70 ? "bg-blue-50" : healthScore >= 40 ? "bg-yellow-50" : "bg-red-50"}
+                    icon={<Shield className="w-4 h-4 text-blue-400" />}
+                  />
+                  <StatCard
+                    label="Copies"
+                    value={(base.copies ?? 0).toLocaleString()}
+                    color="text-amber-700"
+                    bg="bg-amber-50"
+                    icon={<Copy className="w-4 h-4 text-amber-500" />}
+                  />
+                  <StatCard
+                    label="Views"
+                    value={(base.views ?? 0).toLocaleString()}
+                    color="text-purple-700"
+                    bg="bg-purple-50"
+                    icon={<Eye className="w-4 h-4 text-purple-400" />}
+                  />
+                  {base.rating_count > 0 ? (
+                    <StatCard
+                      label="Rating"
+                      value={`${Number(base.rating_avg).toFixed(1)}/5`}
+                      color="text-amber-600"
+                      bg="bg-yellow-50"
+                      icon={<Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />}
+                    />
+                  ) : (
+                    <div className="col-span-1" />
+                  )}
+                  {/* Desktop inline copy button — shown in 3rd col of row 2 */}
+                  <button
+                    onClick={handleCopy}
+                    className="hidden lg:flex flex-col items-center justify-center py-3 px-2 rounded-2xl bg-primary/10 active:scale-95 transition-all"
+                  >
+                    <Copy className="w-4 h-4 text-primary mb-1" />
+                    <span className="text-xs font-black text-primary leading-tight">Copy</span>
+                    <span className="text-[10px] text-gray-500 font-medium">Layout</span>
+                  </button>
+                </div>
+                {/* Mobile-only full-width copy button */}
                 <button
                   onClick={handleCopy}
-                  className="ml-auto shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-xl font-black text-white text-xs shadow-sm active:scale-95 transition-all whitespace-nowrap"
+                  className="lg:hidden w-full flex items-center justify-center gap-2.5 py-3.5 rounded-2xl font-black text-white text-sm shadow-md active:scale-95 transition-all"
                   style={{ background: `linear-gradient(135deg, ${GOLD}, #B8952E)` }}
                 >
-                  <Copy className="w-3.5 h-3.5" />
-                  Copy Layout
+                  <Copy className="w-4 h-4" />
+                  Copy Layout to Clash of Clans
                 </button>
               </div>
             </div>
@@ -480,17 +532,6 @@ export function BaseDetailPage() {
             {/* Ad unit — below image */}
             <AdUnit slot="base-detail-top" />
 
-            {/* Mobile-only: Copy button */}
-            <div className="lg:hidden">
-              <button
-                onClick={handleCopy}
-                className="w-full flex items-center justify-center gap-2.5 py-4 rounded-xl font-black text-white text-base shadow-lg active:scale-95 transition-all"
-                style={{ backgroundColor: GOLD }}
-              >
-                <Copy className="w-5 h-5" />
-                Copy Layout to Clash of Clans
-              </button>
-            </div>
 
             {/* About This Base — rich HTML description from admin */}
             {base.description && (
