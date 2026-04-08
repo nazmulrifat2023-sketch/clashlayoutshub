@@ -885,18 +885,6 @@ export function BaseDetailPage() {
         </section>
       </div>
 
-      {/* ── Mobile sticky CTA ── */}
-      <div className="fixed bottom-16 left-0 right-0 z-30 px-4 pb-2 lg:hidden">
-        <button
-          onClick={handleCopy}
-          className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-xl font-black text-white text-sm shadow-xl active:scale-95 transition-all"
-          style={{ background: `linear-gradient(135deg, ${GOLD}, #B8952E)` }}
-        >
-          <Copy className="w-4 h-4" />
-          Copy Layout — Free
-        </button>
-      </div>
-
       <ReportModal baseId={base.id} open={reportOpen} onClose={() => setReportOpen(false)} />
     </div>
   );
