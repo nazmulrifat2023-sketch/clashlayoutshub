@@ -10,7 +10,7 @@ import {
 import { useState } from "react";
 import { useTranslation } from "@/contexts/LanguageContext";
 
-const GOLD = "#D4AF37";
+const GOLD = "#EB8D00";
 const DESC_MAX = 500;
 
 function normalizeImgurUrl(url: string): string {

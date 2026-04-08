@@ -4,7 +4,7 @@ import { useSEO } from "@/hooks/useSEO";
 import { CalendarDays, Eye, ArrowRight, BookOpen } from "lucide-react";
 import { useListBlogPosts } from "@workspace/api-client-react";
 
-const GOLD = "#D4AF37";
+const GOLD = "#EB8D00";
 
 /** Derive a display tag from the post title / slug */
 function deriveTag(title: string, slug: string): string {

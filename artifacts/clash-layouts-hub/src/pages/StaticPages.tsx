@@ -4,7 +4,7 @@ import {
   Globe, Mail, FileText, Lock, ClipboardList, Flame,
 } from "lucide-react";
 
-const GOLD = "#D4AF37";
+const GOLD = "#EB8D00";
 
 const stats = [
   { value: "1,000+", label: "Verified Base Layouts" },

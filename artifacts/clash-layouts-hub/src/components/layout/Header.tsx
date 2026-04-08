@@ -4,7 +4,7 @@ import { Menu, X, Shield, Globe, LogOut, ChevronDown, User } from "lucide-react"
 import { useTranslation, Language } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 
-const GOLD = "#D4AF37";
+const GOLD = "#EB8D00";
 
 export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);

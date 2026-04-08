@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { TurnstileWidget, type TurnstileRef } from "@/components/common/TurnstileWidget";
 import { useAuth } from "@/contexts/AuthContext";
 
-const GOLD = "#D4AF37";
+const GOLD = "#EB8D00";
 const TURNSTILE_SITE_KEY =
   import.meta.env.VITE_TURNSTILE_SITE_KEY || "1x00000000000000000000AA";
 

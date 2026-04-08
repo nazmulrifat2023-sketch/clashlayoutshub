@@ -550,7 +550,7 @@ export function AdminBaseForm() {
               onClick={handleGenerateProTips}
               disabled={generatingTips}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border transition-colors disabled:opacity-50"
-              style={{ background: generatingTips ? "#f5f0d8" : "linear-gradient(135deg,#D4AF37 0%,#b8860b 100%)", color: generatingTips ? "#92822a" : "#fff", borderColor: "#D4AF37" }}
+              style={{ background: generatingTips ? "#f5f0d8" : "linear-gradient(135deg,#EB8D00 0%,#C46A00 100%)", color: generatingTips ? "#7A4000" : "#fff", borderColor: "#EB8D00" }}
             >
               {generatingTips
                 ? <Loader2 className="w-3 h-3 animate-spin" />

@@ -1,7 +1,7 @@
 import { Link } from "wouter";
 import { Shield } from "lucide-react";
 
-const GOLD = "#D4AF37";
+const GOLD = "#EB8D00";
 
 const TH_LEVELS = Array.from({ length: 16 }, (_, i) => i + 3);
 

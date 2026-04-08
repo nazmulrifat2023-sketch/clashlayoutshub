@@ -11,7 +11,7 @@ import {
   Link2, X, FileImage,
 } from "lucide-react";
 
-const GOLD = "#D4AF37";
+const GOLD = "#EB8D00";
 
 type FormData = {
   title: string;

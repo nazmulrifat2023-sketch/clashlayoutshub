@@ -4,7 +4,7 @@ import { useGetBlogPost } from "@workspace/api-client-react";
 import { AdUnit } from "@/components/ads/AdUnit";
 import { useSEO } from "@/hooks/useSEO";
 
-const GOLD = "#D4AF37";
+const GOLD = "#EB8D00";
 
 /** Split HTML string at a natural point for ad injection */
 function splitContent(html: string): [string, string] {

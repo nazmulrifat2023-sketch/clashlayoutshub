@@ -4,7 +4,7 @@ import { Shield, Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 
-const GOLD = "#D4AF37";
+const GOLD = "#EB8D00";
 
 function GoogleIcon() {
   return (
