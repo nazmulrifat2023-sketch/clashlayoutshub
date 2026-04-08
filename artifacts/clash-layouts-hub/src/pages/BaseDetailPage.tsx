@@ -18,7 +18,7 @@ import {
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-const GOLD = "#D4AF37";
+const GOLD = "#EB8000";
 const TH_LEVELS = Array.from({ length: 16 }, (_, i) => i + 3);
 
 /* ─── Star Rating ─── */
@@ -510,7 +510,7 @@ export function BaseDetailPage() {
                 <button
                   onClick={handleCopy}
                   className="lg:hidden w-full flex items-center justify-center gap-2.5 py-3.5 rounded-2xl font-black text-white text-sm shadow-md active:scale-95 transition-all"
-                  style={{ background: `linear-gradient(135deg, ${GOLD}, #B8952E)` }}
+                  style={{ background: `linear-gradient(135deg, ${GOLD}, #C46A00)` }}
                 >
                   <Copy className="w-4 h-4" />
                   Copy Layout to Clash of Clans
@@ -523,7 +523,7 @@ export function BaseDetailPage() {
               <div className="flex items-center gap-3 rounded-xl px-4 py-3 border"
                 style={{ backgroundColor: "#FFF8E7", borderColor: `${GOLD}50` }}>
                 <Flame className="w-5 h-5 flex-shrink-0" style={{ color: GOLD }} />
-                <p className="text-sm font-semibold" style={{ color: "#92640F" }}>
+                <p className="text-sm font-semibold" style={{ color: "#7A3F00" }}>
                   🔥 <span className="font-black text-base">{todayCopies.todayCopies}</span> players copied this layout today
                 </p>
               </div>
@@ -679,7 +679,7 @@ export function BaseDetailPage() {
                           </p>
                         </div>
                         <Link href="/login" className="shrink-0 inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-bold text-white shadow-sm transition-all hover:opacity-90 active:scale-95 whitespace-nowrap"
-                          style={{ background: `linear-gradient(135deg, ${GOLD} 0%, #b8860b 100%)` }}>
+                          style={{ background: `linear-gradient(135deg, ${GOLD} 0%, #C46A00 100%)` }}>
                           Login / Sign Up
                         </Link>
                       </div>
@@ -699,7 +699,7 @@ export function BaseDetailPage() {
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex items-center gap-2">
                             <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-black shrink-0"
-                              style={{ background: `linear-gradient(135deg, ${GOLD} 0%, #b8860b 100%)` }}>
+                              style={{ background: `linear-gradient(135deg, ${GOLD} 0%, #C46A00 100%)` }}>
                               {(comment.user_name ?? "?")[0].toUpperCase()}
                             </div>
                             <div>
@@ -735,7 +735,7 @@ export function BaseDetailPage() {
                 <button
                   onClick={handleCopy}
                   className="w-full flex items-center justify-center gap-2.5 py-4 rounded-xl font-black text-white text-sm shadow-md active:scale-95 transition-all"
-                  style={{ background: `linear-gradient(135deg, ${GOLD}, #B8952E)` }}
+                  style={{ background: `linear-gradient(135deg, ${GOLD}, #C46A00)` }}
                 >
                   <Copy className="w-4 h-4" />
                   {t.copyLayout}
@@ -767,7 +767,7 @@ export function BaseDetailPage() {
                       <Flame className="w-5 h-5" style={{ color: GOLD }} />
                     </div>
                     <div>
-                      <p className="text-xs font-medium" style={{ color: "#92640F" }}>Copied today</p>
+                      <p className="text-xs font-medium" style={{ color: "#7A3F00" }}>Copied today</p>
                       <p className="font-black text-xl leading-tight" style={{ color: GOLD }}>
                         {todayCopies.todayCopies}
                         <span className="text-xs font-medium text-gray-400 ml-1">players</span>
@@ -835,7 +835,7 @@ export function BaseDetailPage() {
                   <ul className="px-4 py-4 space-y-3">
                     {base.pro_tips.map((tip, i) => (
                       <li key={i} className="flex items-start gap-2.5 text-xs text-gray-600 leading-relaxed">
-                        <span className="shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black text-white mt-0.5" style={{ background: `linear-gradient(135deg, ${GOLD} 0%, #b8860b 100%)` }}>
+                        <span className="shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black text-white mt-0.5" style={{ background: `linear-gradient(135deg, ${GOLD} 0%, #C46A00 100%)` }}>
                           {i + 1}
                         </span>
                         {tip}
