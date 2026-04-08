@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { db } from "@workspace/db";
 import { usersTable } from "@workspace/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, or, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 const router: IRouter = Router();
@@ -65,10 +65,17 @@ router.post("/auth/register", async (req: Request, res: Response): Promise<void>
     return;
   }
 
-  const existing = await db.select({ id: usersTable.id }).from(usersTable)
+  const existingEmail = await db.select({ id: usersTable.id }).from(usersTable)
     .where(eq(usersTable.email, email.toLowerCase())).limit(1);
-  if (existing.length) {
+  if (existingEmail.length) {
     res.status(409).json({ error: "An account with this email already exists" });
+    return;
+  }
+
+  const existingUsername = await db.select({ id: usersTable.id }).from(usersTable)
+    .where(eq(sql`lower(${usersTable.display_name})`, display_name.toLowerCase())).limit(1);
+  if (existingUsername.length) {
+    res.status(409).json({ error: "This username is already taken. Please choose a different one." });
     return;
   }
 
@@ -83,23 +90,29 @@ router.post("/auth/register", async (req: Request, res: Response): Promise<void>
 });
 
 router.post("/auth/login", async (req: Request, res: Response): Promise<void> => {
-  const { email, password } = req.body as { email?: string; password?: string };
+  const { identifier, password } = req.body as { identifier?: string; password?: string };
 
-  if (!email || !password) {
-    res.status(400).json({ error: "email and password are required" });
+  if (!identifier || !password) {
+    res.status(400).json({ error: "Email/username and password are required" });
     return;
   }
 
+  const id = identifier.trim().toLowerCase();
   const [user] = await db.select().from(usersTable)
-    .where(eq(usersTable.email, email.toLowerCase())).limit(1);
+    .where(or(
+      eq(usersTable.email, id),
+      eq(sql`lower(${usersTable.display_name})`, id)
+    ))
+    .limit(1);
+
   if (!user) {
-    res.status(401).json({ error: "Invalid email or password" });
+    res.status(401).json({ error: "Invalid email/username or password" });
     return;
   }
 
   const valid = await bcrypt.compare(password, user.password_hash);
   if (!valid) {
-    res.status(401).json({ error: "Invalid email or password" });
+    res.status(401).json({ error: "Invalid email/username or password" });
     return;
   }
 

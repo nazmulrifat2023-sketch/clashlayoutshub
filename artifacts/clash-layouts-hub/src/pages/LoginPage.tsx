@@ -21,7 +21,7 @@ export function LoginPage() {
   const { login } = useAuth();
   const [, setLocation] = useLocation();
 
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -47,7 +47,7 @@ export function LoginPage() {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ identifier, password }),
       });
       const json = await res.json();
       if (!res.ok) { setError(json.error || "Login failed"); return; }
@@ -109,21 +109,21 @@ export function LoginPage() {
           {/* Divider */}
           <div className="flex items-center gap-3 my-5">
             <div className="flex-1 h-px bg-border" />
-            <span className="text-xs text-muted-foreground font-medium">or continue with email</span>
+            <span className="text-xs text-muted-foreground font-medium">or continue with email / username</span>
             <div className="flex-1 h-px bg-border" />
           </div>
 
-          {/* Email/Password form */}
+          {/* Login form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-semibold mb-1.5">Email</label>
+              <label className="block text-sm font-semibold mb-1.5">Email or Username</label>
               <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                type="text"
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
                 required
-                placeholder="you@example.com"
-                autoComplete="email"
+                placeholder="you@example.com or YourUsername"
+                autoComplete="username"
                 className={inputCls}
               />
             </div>
