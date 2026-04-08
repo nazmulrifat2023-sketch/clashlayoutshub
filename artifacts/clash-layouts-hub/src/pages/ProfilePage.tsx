@@ -1,7 +1,7 @@
-import { useState, useEffect, type FormEvent } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import {
-  User, Bookmark, FileText, Settings, LogOut, Edit2, Check, X,
+  User, Bookmark, FileText, Settings, LogOut,
   Shield, Clock, CheckCircle2, AlertCircle, Loader2, ChevronRight
 } from "lucide-react";
 import { toast } from "sonner";
@@ -58,9 +58,6 @@ export function ProfilePage() {
   const [loadingSaved, setLoadingSaved] = useState(false);
   const [loadingSubs, setLoadingSubs] = useState(false);
 
-  const [editingName, setEditingName] = useState(false);
-  const [newName, setNewName] = useState(user?.display_name || "");
-  const [savingName, setSavingName] = useState(false);
 
   useEffect(() => {
     if (!user) { setLocation("/login"); }
@@ -84,27 +81,6 @@ export function ProfilePage() {
         .finally(() => setLoadingSubs(false));
     }
   }, [tab, token]);
-
-  async function handleSaveName(e: FormEvent) {
-    e.preventDefault();
-    if (!newName.trim()) return;
-    setSavingName(true);
-    try {
-      const res = await fetch("/api/user/profile", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ display_name: newName.trim() }),
-      });
-      if (!res.ok) throw new Error();
-      await refreshUser();
-      toast.success("Username updated!");
-      setEditingName(false);
-    } catch {
-      toast.error("Failed to update username");
-    } finally {
-      setSavingName(false);
-    }
-  }
 
   if (!user) return null;
 
@@ -307,45 +283,9 @@ export function ProfilePage() {
 
               <div>
                 <label className="block text-xs font-semibold text-muted-foreground mb-1.5">Username</label>
-                {editingName ? (
-                  <form onSubmit={handleSaveName} className="flex gap-2">
-                    <input
-                      type="text"
-                      value={newName}
-                      onChange={e => setNewName(e.target.value)}
-                      maxLength={30}
-                      className="flex-1 px-3 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                      autoFocus
-                    />
-                    <button
-                      type="submit"
-                      disabled={savingName}
-                      className="p-2.5 rounded-xl text-white transition-colors disabled:opacity-50"
-                      style={{ backgroundColor: GOLD }}
-                    >
-                      {savingName ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => { setEditingName(false); setNewName(user.display_name); }}
-                      className="p-2.5 rounded-xl border border-border hover:bg-muted transition-colors"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </form>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1 px-3 py-2.5 bg-muted/40 rounded-xl text-sm border border-border">
-                      {user.display_name}
-                    </div>
-                    <button
-                      onClick={() => { setEditingName(true); setNewName(user.display_name); }}
-                      className="p-2.5 rounded-xl border border-border hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                )}
+                <div className="px-3 py-2.5 bg-muted/40 rounded-xl text-sm text-muted-foreground border border-border">
+                  {user.display_name}
+                </div>
               </div>
             </div>
           </div>
