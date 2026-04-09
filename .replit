@@ -27,3 +27,8 @@ timeoutMs = 20000
 
 [nix]
 channel = "stable-25_05"
+
+[userenv]
+
+[userenv.shared]
+VITE_TURNSTILE_SITE_KEY = "0x4AAAAAAC2gXo-5q95uFx1D"
