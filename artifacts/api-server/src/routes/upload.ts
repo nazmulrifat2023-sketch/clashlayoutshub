@@ -75,7 +75,7 @@ router.post("/upload/image", upload.single("image"), (req: Request, res: Respons
 
 router.post("/suggest-description", async (req: Request, res: Response): Promise<void> => {
   if (!isAiAvailable()) {
-    res.status(503).json({ error: "AI features are not available in this environment." });
+    res.json({ aiUnavailable: true, description: "" });
     return;
   }
 

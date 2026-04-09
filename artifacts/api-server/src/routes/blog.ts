@@ -1,7 +1,7 @@
 import { Router, type IRouter, type Request, type Response } from "express";
 import { eq, desc, count, sql } from "drizzle-orm";
 import { db, blogPostsTable } from "@workspace/db";
-import { ai } from "@workspace/integrations-gemini-ai";
+import { ai, isAiAvailable } from "@workspace/integrations-gemini-ai";
 import {
   ListBlogPostsQueryParams,
   CreateBlogPostBody,
@@ -119,6 +119,10 @@ router.post("/blog/generate-post", async (req: Request, res: Response): Promise<
     res.status(400).json({ error: "title is required" });
     return;
   }
+  if (!isAiAvailable()) {
+    res.json({ aiUnavailable: true, html: "" });
+    return;
+  }
 
   const prompt = `You are an expert Clash of Clans content writer for a base layout website. Write a comprehensive, engaging blog post based on this title: "${title}"
 
@@ -153,6 +157,10 @@ router.post("/blog/generate-seo", async (req: Request, res: Response): Promise<v
   const { title, content } = req.body as { title?: string; content?: string };
   if (!content?.trim()) {
     res.status(400).json({ error: "content is required" });
+    return;
+  }
+  if (!isAiAvailable()) {
+    res.json({ aiUnavailable: true, excerpt: "", meta_title: title ?? "", meta_description: "" });
     return;
   }
 

@@ -88,7 +88,7 @@ router.get("/bases/base-of-day", async (_req: Request, res: Response): Promise<v
     .orderBy(desc(basesTable.rating_avg))
     .limit(1);
   if (!bases[0]) {
-    res.status(404).json({ error: "No base found" });
+    res.json({ base: null });
     return;
   }
   res.json(mapBase(bases[0]));

@@ -2,7 +2,7 @@ import { Router, type IRouter, type Request, type Response } from "express";
 import { db } from "@workspace/db";
 import { basesTable } from "@workspace/db/schema";
 import { eq } from "drizzle-orm";
-import { ai } from "@workspace/integrations-gemini-ai";
+import { ai, isAiAvailable } from "@workspace/integrations-gemini-ai";
 
 const router: IRouter = Router();
 
@@ -22,6 +22,10 @@ router.get("/bases/:id/analyze", async (req: Request, res: Response) => {
 
     if (base.ai_analysis) {
       return res.json({ analysis: base.ai_analysis, cached: true });
+    }
+
+    if (!isAiAvailable()) {
+      return res.json({ aiUnavailable: true, analysis: null });
     }
 
     const prompt = buildPrompt(base);

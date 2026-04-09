@@ -1,5 +1,5 @@
 import { Router, type IRouter, type Request, type Response } from "express";
-import { ai } from "@workspace/integrations-gemini-ai";
+import { ai, isAiAvailable } from "@workspace/integrations-gemini-ai";
 
 const router: IRouter = Router();
 
@@ -23,6 +23,10 @@ const TH_BUILDINGS: Record<number, string> = {
 };
 
 router.post("/generate-pro-tips", async (req: Request, res: Response): Promise<void> => {
+  if (!isAiAvailable()) {
+    res.json({ aiUnavailable: true, tips: ["AI features are only available in the Replit environment. Add bases manually for now."] });
+    return;
+  }
   try {
     const { townhall, base_type } = req.body as { townhall?: number; base_type?: string };
 
