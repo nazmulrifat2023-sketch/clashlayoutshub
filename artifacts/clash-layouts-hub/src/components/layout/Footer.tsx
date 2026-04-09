@@ -66,9 +66,9 @@ export function Footer() {
   return (
     <footer className="bg-[#111827] text-white mt-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-8 lg:gap-10">
-          {/* Brand — spans 2 cols on md */}
-          <div className="col-span-2 md:col-span-1">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-8 lg:gap-10">
+          {/* Brand */}
+          <div className="sm:col-span-2 md:col-span-1">
             <Link href="/" className="flex items-center gap-2 mb-4">
               <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shrink-0">
                 <Shield className="w-5 h-5 text-white" />
@@ -106,7 +106,7 @@ export function Footer() {
           </div>
 
           {/* Browse — compact TH grid */}
-          <div className="col-span-2 md:col-span-1">
+          <div className="sm:col-span-2 md:col-span-1">
             <h4 className="font-semibold mb-3 text-xs uppercase tracking-widest text-white/40">
               Browse
             </h4>
