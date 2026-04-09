@@ -2,7 +2,7 @@ import { useState, type FormEvent } from "react";
 import { Link } from "wouter";
 import { Shield, Loader2, AlertCircle, CheckCircle2, ArrowLeft } from "lucide-react";
 
-const GOLD = "#EB8D00";
+const GOLD = "#C27400";
 
 export function ForgotPasswordPage() {
   const [email, setEmail] = useState("");

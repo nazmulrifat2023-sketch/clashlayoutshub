@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { TurnstileWidget, type TurnstileRef } from "@/components/common/TurnstileWidget";
 import { useAuth } from "@/contexts/AuthContext";
 
-const GOLD = "#EB8D00";
+const GOLD = "#C27400";
 const TURNSTILE_SITE_KEY =
   import.meta.env.VITE_TURNSTILE_SITE_KEY || "1x00000000000000000000AA";
 
@@ -123,8 +123,9 @@ export function SignupPage() {
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-semibold mb-1.5">Username</label>
+              <label htmlFor="signup-username" className="block text-sm font-semibold mb-1.5">Username</label>
               <input
+                id="signup-username"
                 type="text"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
@@ -137,8 +138,9 @@ export function SignupPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold mb-1.5">Email</label>
+              <label htmlFor="signup-email" className="block text-sm font-semibold mb-1.5">Email</label>
               <input
+                id="signup-email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -150,12 +152,13 @@ export function SignupPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold mb-1.5">
+              <label htmlFor="signup-password" className="block text-sm font-semibold mb-1.5">
                 Password
                 <span className="text-muted-foreground font-normal ml-1">(min 6 chars)</span>
               </label>
               <div className="relative">
                 <input
+                  id="signup-password"
                   type={showPw ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -167,9 +170,10 @@ export function SignupPage() {
                 <button
                   type="button"
                   onClick={() => setShowPw(!showPw)}
+                  aria-label={showPw ? "Hide password" : "Show password"}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1"
                 >
-                  {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPw ? <EyeOff className="w-4 h-4" aria-hidden="true" /> : <Eye className="w-4 h-4" aria-hidden="true" />}
                 </button>
               </div>
             </div>

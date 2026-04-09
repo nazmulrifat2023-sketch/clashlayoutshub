@@ -7,7 +7,7 @@ import {
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 
-const GOLD = "#EB8D00";
+const GOLD = "#C27400";
 
 type Tab = "saved" | "submissions" | "settings";
 

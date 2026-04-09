@@ -4,7 +4,7 @@ import { Shield, Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 
-const GOLD = "#EB8D00";
+const GOLD = "#C27400";
 
 function GoogleIcon() {
   return (
@@ -116,8 +116,9 @@ export function LoginPage() {
           {/* Login form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-semibold mb-1.5">Email or Username</label>
+              <label htmlFor="login-identifier" className="block text-sm font-semibold mb-1.5">Email or Username</label>
               <input
+                id="login-identifier"
                 type="text"
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
@@ -130,13 +131,14 @@ export function LoginPage() {
 
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-sm font-semibold">Password</label>
+                <label htmlFor="login-password" className="block text-sm font-semibold">Password</label>
                 <Link href="/forgot-password" className="text-xs font-medium text-muted-foreground hover:underline" style={{ color: GOLD }}>
                   Forgot password?
                 </Link>
               </div>
               <div className="relative">
                 <input
+                  id="login-password"
                   type={showPw ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -148,9 +150,10 @@ export function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPw(!showPw)}
+                  aria-label={showPw ? "Hide password" : "Show password"}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1"
                 >
-                  {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPw ? <EyeOff className="w-4 h-4" aria-hidden="true" /> : <Eye className="w-4 h-4" aria-hidden="true" />}
                 </button>
               </div>
             </div>

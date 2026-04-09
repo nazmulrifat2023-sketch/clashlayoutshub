@@ -5,7 +5,7 @@ const EMAIL = "contact@clashlayoutshub.com";
 const DOMAIN = "clashlayoutshub.com";
 const SITE = "ClashLayoutsHub";
 const UPDATED = "April 7, 2026";
-const GOLD = "#EB8D00";
+const GOLD = "#C27400";
 
 /* ─── Shared layout ─── */
 function LegalLayout({

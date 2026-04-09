@@ -18,7 +18,7 @@ import {
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-const GOLD = "#EB8D00";
+const GOLD = "#C27400";
 const TH_LEVELS = Array.from({ length: 16 }, (_, i) => i + 3);
 
 /* ─── Star Rating ─── */

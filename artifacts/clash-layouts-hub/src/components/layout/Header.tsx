@@ -4,7 +4,7 @@ import { Menu, X, Shield, Globe, LogOut, ChevronDown, User } from "lucide-react"
 import { useTranslation, Language } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 
-const GOLD = "#EB8D00";
+const GOLD = "#C27400";
 
 export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -166,9 +166,12 @@ export function Header() {
             {/* Mobile menu button */}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
+              aria-label={mobileOpen ? "Close navigation menu" : "Open navigation menu"}
+              aria-expanded={mobileOpen}
+              aria-controls="mobile-nav"
               className="md:hidden p-2 rounded-lg hover:bg-muted transition-colors"
             >
-              {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              {mobileOpen ? <X className="w-5 h-5" aria-hidden="true" /> : <Menu className="w-5 h-5" aria-hidden="true" />}
             </button>
           </div>
         </div>
@@ -176,7 +179,7 @@ export function Header() {
 
       {/* Mobile nav */}
       {mobileOpen && (
-        <div className="md:hidden bg-white border-t border-border">
+        <div id="mobile-nav" className="md:hidden bg-white border-t border-border">
           <div className="px-4 py-3 space-y-1">
             {navLinks.map(link => (
               <Link

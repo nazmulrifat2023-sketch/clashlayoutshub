@@ -2,7 +2,7 @@ import { useState, type FormEvent } from "react";
 import { Link, useLocation } from "wouter";
 import { Shield, Loader2, AlertCircle, CheckCircle2, Eye, EyeOff } from "lucide-react";
 
-const GOLD = "#EB8D00";
+const GOLD = "#C27400";
 
 export function ResetPasswordPage() {
   const [, setLocation] = useLocation();

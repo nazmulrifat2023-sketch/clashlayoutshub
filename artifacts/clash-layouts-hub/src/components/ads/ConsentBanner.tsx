@@ -66,7 +66,7 @@ declare global {
   }
 }
 
-const GOLD = "#EB8D00";
+const GOLD = "#C27400";
 const GOLD_DARK = "#b8960f";
 
 export function ConsentBanner() {

@@ -83,7 +83,7 @@
   --sidebar: 36 20% 97%;
   --sidebar-foreground: 25 30% 12%;
   --sidebar-border: 36 20% 85%;
-  --sidebar-primary: 36 100% 46%;
+  --sidebar-primary: 36 100% 38%;
   --sidebar-primary-foreground: 0 0% 100%;
   --sidebar-accent: 36 40% 93%;
   --sidebar-accent-foreground: 25 30% 12%;
@@ -91,7 +91,7 @@
   --popover: 0 0% 100%;
   --popover-foreground: 25 30% 12%;
   --popover-border: 36 20% 88%;
-  --primary: 36 100% 46%;
+  --primary: 36 100% 38%;
   --primary-foreground: 0 0% 100%;
   --secondary: 213 100% 47%;
   --secondary-foreground: 0 0% 100%;
@@ -141,6 +141,32 @@
   body {
     @apply font-sans antialiased bg-background text-foreground;
   }
+
+  .skip-link {
+    position: absolute;
+    top: -100%;
+    left: 1rem;
+    z-index: 9999;
+    padding: 0.5rem 1rem;
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    border-radius: 0 0 0.375rem 0.375rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-decoration: none;
+    transition: top 0.15s;
+  }
+  .skip-link:focus {
+    top: 0;
+    outline: 3px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
 }
 
 /* Custom utilities */
@@ -164,7 +190,7 @@
   }
 
   .th-badge {
-    background: linear-gradient(135deg, hsl(36 100% 46%) 0%, hsl(28 100% 40%) 100%);
+    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(28 100% 33%) 100%);
     color: white;
     font-weight: 700;
     font-size: 0.75rem;
