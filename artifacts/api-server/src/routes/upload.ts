@@ -3,22 +3,39 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { randomUUID } from "crypto";
-import { ai } from "@workspace/integrations-gemini-ai";
+import { ai, isAiAvailable } from "@workspace/integrations-gemini-ai";
 
 const router: IRouter = Router();
 
-const uploadsDir = path.resolve(process.cwd(), "public/uploads");
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
+// On Vercel the filesystem is read-only at /var/task — never mkdir at module
+// load time. Use memory storage in production; disk storage in development.
+const isProduction = process.env.NODE_ENV === "production";
 
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => cb(null, uploadsDir),
-  filename: (_req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase() || ".jpg";
-    cb(null, `${randomUUID()}${ext}`);
-  },
-});
+let storage: multer.StorageEngine;
+
+if (isProduction) {
+  // Memory storage: no filesystem writes. Files land in req.file.buffer.
+  // To persist images in production, configure Cloudflare R2 (see env vars).
+  storage = multer.memoryStorage();
+} else {
+  // Development: write to local disk so uploads work during local testing.
+  const uploadsDir = path.resolve(process.cwd(), "public/uploads");
+  try {
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
+  } catch {
+    // If we still can't create it, fall back silently — the upload endpoint
+    // will return a helpful error instead of crashing the whole server.
+  }
+  storage = multer.diskStorage({
+    destination: (_req, _file, cb) => cb(null, uploadsDir),
+    filename: (_req, file, cb) => {
+      const ext = path.extname(file.originalname).toLowerCase() || ".jpg";
+      cb(null, `${randomUUID()}${ext}`);
+    },
+  });
+}
 
 const upload = multer({
   storage,
@@ -34,11 +51,34 @@ router.post("/upload/image", upload.single("image"), (req: Request, res: Respons
     res.status(400).json({ error: "No file uploaded" });
     return;
   }
-  const url = `/api/uploads/${req.file.filename}`;
-  res.json({ url, filename: req.file.filename });
+
+  if (isProduction) {
+    // R2 upload: requires R2_BUCKET_NAME + R2_PUBLIC_URL env vars.
+    // If not configured, return a clear error — do NOT crash.
+    if (!process.env.R2_BUCKET_NAME || !process.env.R2_PUBLIC_URL) {
+      res.status(503).json({
+        error: "File storage not configured",
+        detail: "Set R2_BUCKET_NAME, R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_PUBLIC_URL environment variables to enable image uploads in production.",
+      });
+      return;
+    }
+    // TODO: upload req.file.buffer to R2 using @aws-sdk/client-s3
+    // For now: return the error until R2 is configured.
+    res.status(503).json({ error: "R2 upload not yet implemented" });
+    return;
+  }
+
+  // Development: file is on disk, return local URL.
+  const url = `/api/uploads/${(req.file as Express.Multer.File & { filename: string }).filename}`;
+  res.json({ url, filename: (req.file as Express.Multer.File & { filename: string }).filename });
 });
 
 router.post("/suggest-description", async (req: Request, res: Response): Promise<void> => {
+  if (!isAiAvailable()) {
+    res.status(503).json({ error: "AI features are not available in this environment." });
+    return;
+  }
+
   const { townhall, base_type } = req.body as {
     townhall?: number;
     base_type?: string;
@@ -69,7 +109,6 @@ RULES:
 - Return ONLY the HTML — nothing else.`;
 
   try {
-    console.log(`[suggest-description] Generating for TH${th} ${type}`);
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: [{ role: "user", parts: [{ text: prompt }] }],
@@ -78,7 +117,6 @@ RULES:
 
     let description = (response.text ?? "").trim();
     description = description.replace(/^```html?\s*/i, "").replace(/```\s*$/, "").trim();
-    console.log(`[suggest-description] Raw length: ${description.length} chars`);
 
     if (!description || description.length < 100) {
       throw new Error("AI returned too short a description");
@@ -90,11 +128,9 @@ RULES:
       description = lastTag > 800 ? slice.slice(0, lastTag + 4) : slice;
     }
 
-    console.log(`[suggest-description] Final length: ${description.length} chars`);
     res.json({ description });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
-    console.error("[suggest-description] Gemini error:", msg);
     res.status(500).json({ error: "Failed to generate description", detail: msg });
   }
 });
