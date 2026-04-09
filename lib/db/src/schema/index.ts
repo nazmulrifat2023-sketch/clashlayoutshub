@@ -7,3 +7,4 @@ export * from "./views_analytics";
 export * from "./copies_analytics";
 export * from "./users";
 export * from "./saved_bases";
+export * from "./password_reset_tokens";

@@ -1,10 +1,11 @@
 import { Router, type IRouter, type Request, type Response } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import nodemailer from "nodemailer";
 import { db } from "@workspace/db";
-import { usersTable } from "@workspace/db/schema";
-import { eq, or, sql } from "drizzle-orm";
-import { randomUUID } from "crypto";
+import { usersTable, passwordResetTokensTable } from "@workspace/db/schema";
+import { eq, or, sql, and, gt } from "drizzle-orm";
+import { randomUUID, randomBytes } from "crypto";
 
 const router: IRouter = Router();
 
@@ -261,6 +262,97 @@ router.post("/admin/login", async (req: Request, res: Response): Promise<void> =
 
   const token = jwt.sign({ sub: "admin", admin: true }, JWT_SECRET, { expiresIn: "12h" });
   res.json({ token });
+});
+
+// ── Forgot Password ─────────────────────────────────────────────────────────
+async function sendResetEmail(toEmail: string, resetUrl: string): Promise<void> {
+  const smtpHost = process.env.SMTP_HOST;
+  if (smtpHost) {
+    const transporter = nodemailer.createTransport({
+      host: smtpHost,
+      port: Number(process.env.SMTP_PORT || 587),
+      secure: process.env.SMTP_SECURE === "true",
+      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+    });
+    await transporter.sendMail({
+      from: process.env.SMTP_FROM || `"ClashLayoutsHub" <noreply@clashlayoutshub.com>`,
+      to: toEmail,
+      subject: "Reset your ClashLayoutsHub password",
+      html: `
+        <div style="font-family:sans-serif;max-width:480px;margin:0 auto">
+          <h2 style="color:#EB8D00">Reset your password</h2>
+          <p>Click the button below to reset your ClashLayoutsHub password. This link expires in 1 hour.</p>
+          <a href="${resetUrl}" style="display:inline-block;padding:12px 24px;background:#EB8D00;color:#fff;text-decoration:none;border-radius:8px;font-weight:bold;margin:16px 0">Reset Password</a>
+          <p style="color:#666;font-size:13px">If you didn't request this, you can safely ignore this email.</p>
+          <p style="color:#999;font-size:11px">Link: ${resetUrl}</p>
+        </div>
+      `,
+    });
+  } else {
+    console.log(`[FORGOT PASSWORD] Reset link for ${toEmail}: ${resetUrl}`);
+  }
+}
+
+router.post("/auth/forgot-password", async (req: Request, res: Response): Promise<void> => {
+  const { email } = req.body as { email?: string };
+  if (!email?.trim()) {
+    res.status(400).json({ error: "Email is required" });
+    return;
+  }
+
+  const [user] = await db.select({ id: usersTable.id, email: usersTable.email })
+    .from(usersTable)
+    .where(eq(usersTable.email, email.trim().toLowerCase()))
+    .limit(1);
+
+  if (user) {
+    const token = randomBytes(32).toString("hex");
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+    await db.insert(passwordResetTokensTable).values({
+      user_id: user.id,
+      token,
+      expires_at: expiresAt,
+    });
+    const baseUrl = process.env.RESET_BASE_URL || "https://clashlayoutshub.com";
+    const resetUrl = `${baseUrl}/reset-password?token=${token}`;
+    await sendResetEmail(user.email, resetUrl).catch(err =>
+      console.error("[FORGOT PASSWORD] Email error:", err)
+    );
+  }
+
+  res.json({ message: "If that email is registered, a reset link has been sent." });
+});
+
+router.post("/auth/reset-password", async (req: Request, res: Response): Promise<void> => {
+  const { token, password } = req.body as { token?: string; password?: string };
+  if (!token || !password) {
+    res.status(400).json({ error: "Token and new password are required" });
+    return;
+  }
+  if (password.length < 6) {
+    res.status(400).json({ error: "Password must be at least 6 characters" });
+    return;
+  }
+
+  const [row] = await db.select()
+    .from(passwordResetTokensTable)
+    .where(and(
+      eq(passwordResetTokensTable.token, token),
+      eq(passwordResetTokensTable.used, false),
+      gt(passwordResetTokensTable.expires_at, new Date()),
+    ))
+    .limit(1);
+
+  if (!row) {
+    res.status(400).json({ error: "Invalid or expired reset link. Please request a new one." });
+    return;
+  }
+
+  const password_hash = await bcrypt.hash(password, 12);
+  await db.update(usersTable).set({ password_hash }).where(eq(usersTable.id, row.user_id));
+  await db.update(passwordResetTokensTable).set({ used: true }).where(eq(passwordResetTokensTable.id, row.id));
+
+  res.json({ message: "Password updated successfully. You can now log in." });
 });
 
 // ── Admin Token Verify ─────────────────────────────────────────────────────────
