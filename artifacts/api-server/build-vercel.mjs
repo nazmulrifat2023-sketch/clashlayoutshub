@@ -7,10 +7,12 @@ globalThis.require = createRequire(import.meta.url);
 
 const artifactDir = path.dirname(fileURLToPath(import.meta.url));
 
-// Bundles only src/app.ts (Express app without the server listener)
-// for use as a Vercel serverless function.
-// pino / pino-http are externalized so they're loaded from node_modules
-// at runtime — no worker threads needed in production.
+// Bundles src/app.ts (Express app without the server listener) into a single
+// self-contained ESM file for Vercel serverless deployment.
+//
+// pino, pino-http, and all npm deps are BUNDLED (not external) so the
+// Vercel Lambda environment does not need to resolve pnpm symlinks at runtime.
+// Only truly native/unbundleable packages stay external.
 await esbuild({
   entryPoints: [path.resolve(artifactDir, "src/app.ts")],
   platform: "node",
@@ -18,17 +20,12 @@ await esbuild({
   format: "esm",
   outfile: path.resolve(artifactDir, "dist/app.mjs"),
   logLevel: "info",
+  // Keep only native addons and packages with unavoidable dynamic-require
+  // issues as external. Everything else is bundled for a self-contained Lambda.
   external: [
-    // pino must be external — its worker-thread model isn't compatible
-    // with a single-file bundle in serverless
-    "pino",
-    "pino-http",
-    "pino-pretty",
-    "thread-stream",
-    // nodemailer uses dynamic requires
-    "nodemailer",
-    // native / optional packages
+    // Native addons – can never be bundled
     "*.node",
+    // These packages use native bindings or are truly unbundleable
     "sharp",
     "better-sqlite3",
     "sqlite3",
