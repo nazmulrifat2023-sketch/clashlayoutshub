@@ -1,0 +1,252 @@
+Build "ClashLayoutsHub" — a production-ready Clash of Clans Base Layout 
+Library web application. Stack: React + Vite (frontend), Express (backend 
+API), PostgreSQL + Drizzle ORM (database), deployed to Vercel.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ARCHITECTURE REQUIREMENT (VERCEL)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Use a pnpm monorepo BUT keep the Vercel serverless function self-contained:
+- Frontend: artifacts/clash-layouts-hub/ (React + Vite)
+- Backend: ALL backend code (routes, db, schema, validation) lives INSIDE 
+  artifacts/api-server/src/ — NO cross-package @workspace/* imports in any 
+  file that will be bundled for Vercel
+- Build step: artifacts/api-server/build-vercel.mjs uses esbuild to bundle 
+  src/app.ts into api/server.compiled.js (CJS format, all deps inlined)
+- Vercel entry: api/server.ts is a 3-line CJS stub:
+    // @ts-nocheck
+    const bundle = require("./server.compiled.js");
+    module.exports = bundle.default ?? bundle;
+- vercel.json buildCommand runs:
+    pnpm install --frozen-lockfile && 
+    pnpm --filter @workspace/api-server run build:vercel && 
+    pnpm --filter @workspace/clash-layouts-hub run build
+- pino logger MUST check require.resolve("pino-pretty") before enabling 
+  the transport (worker threads break inside esbuild bundles)
+- esbuild externals: only *.node native addons; bundle EVERYTHING else 
+  (pino, pino-http, express, drizzle-orm, pg, nodemailer, bcryptjs, 
+  jsonwebtoken, cors, multer, cookie-parser — all bundled in)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BRANDING & DESIGN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- Site name: ClashLayoutsHub
+- Primary color: #C27400 (CSS --primary: 36 100% 38%) — WCAG AA compliant
+- Muted foreground: 36 15% 40%
+- Mobile-first, responsive design (Tailwind CSS)
+- Dark/light mode toggle
+- Clash of Clans themed UI (gold accents, medieval/fantasy feel)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FEATURES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. BASE BROWSING
+   - Browse bases by Town Hall level: TH3 through TH18
+   - Filter by: base type (War, Trophy, Farming, Hybrid, CWL), tags
+   - Sort by: newest, most copied, highest health score
+   - Each base card shows: TH level badge, thumbnail image, copy count, 
+     health score, tags, "Copy Link" button
+   - Copy Link increments copy_count in database (optimistic UI update)
+   - Pagination (12 bases per page)
+
+2. BASE DETAIL PAGE
+   - Full-size base image
+   - Copy link button (increments counter each click)
+   - Health score with visual indicator
+   - Tags, TH level, date added
+   - Related bases section
+   - Report button (opens modal with reason selection)
+
+3. HEALTH SCORE SYSTEM
+   - Score 0-100 calculated server-side
+   - Based on: copy count, age, report count (reports reduce score)
+   - Bases below score 20 hidden from public listing
+   - Displayed as colored badge (green/yellow/red)
+
+4. REPORT SYSTEM
+   - Users can report bases: broken link, outdated, inappropriate
+   - Reports stored in DB with base_id, reason, reporter_ip
+   - Too many reports reduce the base's health score
+   - Admins can view/dismiss reports in admin panel
+
+5. AUTHENTICATION
+   - JWT tokens stored in localStorage as "clh_token" (30-day expiry)
+   - Google OAuth (GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, 
+     GOOGLE_REDIRECT_URI env vars)
+   - Standard email/password registration + login
+   - Forgot password via nodemailer SMTP email
+   - Admin JWT separate (12-hour expiry, stored as "clh_admin_token")
+   - Admin credentials from ADMIN_EMAIL + ADMIN_PASSWORD env vars
+   - SESSION_SECRET env var for signing tokens
+
+6. ADMIN PANEL (/admin)
+   - Password-protected admin login page
+   - Dashboard: total bases, total copies, recent reports, new users
+   - Base management: add/edit/delete bases, upload thumbnail images
+   - File uploads: images saved to public/uploads/ (with multer)
+   - Blog management: create/edit/delete blog posts (rich text)
+   - Report review: view pending reports, dismiss or mark base as broken
+   - User management: view users, ban/unban
+
+7. BLOG SYSTEM
+   - Public blog listing page (/blog)
+   - Individual blog post pages (/blog/:slug)
+   - Admin can create posts with title, slug, content (markdown), 
+     cover image, tags, published/draft status
+   - SEO meta tags per post (og:title, og:description, og:image)
+
+8. MULTILINGUAL SUPPORT
+   - Languages: English (en), Bengali (bn), Hindi (hi)
+   - Language switcher in header (persisted to localStorage)
+   - i18next for translation management
+   - Translated: nav, hero, buttons, labels, footer
+   - RTL support is NOT required
+
+9. CLOUDFLARE TURNSTILE
+   - On registration and login forms
+   - VITE_TURNSTILE_SITE_KEY (frontend) and TURNSTILE_SECRET_KEY (backend)
+   - Server validates turnstile token before processing auth
+
+10. GDPR CONSENT BANNER
+    - Cookie consent banner on first visit
+    - "Accept All" / "Reject Non-Essential" buttons
+    - Persisted to localStorage
+    - Only load analytics/ads after consent
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DATABASE SCHEMA (PostgreSQL + Drizzle ORM)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Tables:
+- users: id (serial PK), email, password_hash, name, avatar_url, 
+  is_banned, created_at
+- bases: id (serial PK), title, th_level (3-18), base_type, 
+  image_url, copy_link, copies (integer default 0), 
+  health_score (integer default 100), tags (text[]), 
+  is_visible (boolean default true), created_at
+- reports: id (serial PK), base_id (FK), reason, reporter_ip, 
+  status (pending/dismissed), created_at
+- blog_posts: id (serial PK), title, slug (unique), content, 
+  cover_image_url, tags (text[]), status (draft/published), 
+  created_at, updated_at
+- sessions: id (serial PK), user_id (FK), token_hash, expires_at
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+API ROUTES (Express, all under /api)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+GET  /api/healthz
+GET  /api/bases?th=&type=&sort=&page=
+GET  /api/bases/:id
+POST /api/bases/:id/copy
+POST /api/bases/:id/report
+GET  /api/blog
+GET  /api/blog/:slug
+POST /api/auth/register  (+ turnstile validation)
+POST /api/auth/login     (+ turnstile validation)
+POST /api/auth/google
+GET  /api/auth/google/callback
+POST /api/auth/forgot-password
+POST /api/auth/reset-password
+GET  /api/auth/me
+POST /api/admin/login
+GET  /api/admin/bases
+POST /api/admin/bases       (multipart, image upload)
+PUT  /api/admin/bases/:id
+DELETE /api/admin/bases/:id
+GET  /api/admin/reports
+POST /api/admin/reports/:id/dismiss
+GET  /api/admin/blog
+POST /api/admin/blog
+PUT  /api/admin/blog/:id
+DELETE /api/admin/blog/:id
+GET  /api/admin/users
+POST /api/admin/users/:id/ban
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FRONTEND PAGES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+/ — Hero + TH level selector grid + latest bases
+/bases — Full browse page with filters/sort/pagination
+/bases/:id — Base detail page
+/blog — Blog listing
+/blog/:slug — Blog post
+/login — Login form (turnstile + Google OAuth button)
+/register — Register form (turnstile + Google OAuth button)
+/forgot-password — Email entry form
+/admin — Admin login
+/admin/dashboard — Stats overview
+/admin/bases — Base management table
+/admin/bases/new — Add base form
+/admin/bases/:id/edit — Edit base form
+/admin/blog — Blog post list
+/admin/blog/new — Create blog post
+/admin/reports — Report queue
+/admin/users — User list
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SEO & PERFORMANCE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- react-helmet-async for per-page meta tags
+- /sitemap.xml served by Express (dynamic, lists all published bases+posts)
+- Open Graph tags on every page
+- Skip-to-content link for accessibility
+- aria-current on active nav links
+- All images have alt text
+- Security headers in vercel.json:
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+  Referrer-Policy: strict-origin-when-cross-origin
+  Cache-Control: public, max-age=31536000, immutable (for /assets/*)
+- Lighthouse target: Performance 90+, Accessibility 90+, 
+  Best Practices 90+, SEO 90+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ENVIRONMENT VARIABLES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Backend (set in Vercel dashboard + Replit secrets):
+  DATABASE_URL
+  SESSION_SECRET
+  ADMIN_EMAIL
+  ADMIN_PASSWORD
+  GOOGLE_CLIENT_ID
+  GOOGLE_CLIENT_SECRET
+  GOOGLE_REDIRECT_URI
+  TURNSTILE_SECRET_KEY
+  SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS (for nodemailer)
+
+Frontend Vite vars (prefix VITE_):
+  VITE_TURNSTILE_SITE_KEY
+  VITE_API_URL (leave empty to use relative /api paths)
+  VITE_GOOGLE_CLIENT_ID
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+vercel.json (root of repo)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+{
+  "version": 2,
+  "buildCommand": "pnpm install --frozen-lockfile && pnpm --filter @workspace/api-server run build:vercel && pnpm --filter @workspace/clash-layouts-hub run build",
+  "outputDirectory": "artifacts/clash-layouts-hub/dist/public",
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "/api/server" },
+    { "source": "/sitemap.xml", "destination": "/api/server" },
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
+  ],
+  "functions": {
+    "api/server.ts": { "maxDuration": 30 }
+  },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+      ]
+    },
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    }
+  ]
+}
