@@ -18,7 +18,17 @@ function getPool(): pg.Pool {
         "DATABASE_URL must be set. Did you forget to provision a database?",
       );
     }
-    _pool = new Pool({ connectionString: process.env.DATABASE_URL });
+    // Explicit ssl object prevents pg-connection-string from parsing
+    // sslmode= out of the URL, which triggers a noisy Node.js deprecation
+    // warning that Vercel logs as level:"error" and inflates error rate.
+    _pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: process.env.DATABASE_URL.includes("neon.tech") ||
+           process.env.DATABASE_URL.includes("supabase") ||
+           process.env.DATABASE_URL.includes("sslmode=require")
+        ? { rejectUnauthorized: false }
+        : false,
+    });
   }
   return _pool;
 }

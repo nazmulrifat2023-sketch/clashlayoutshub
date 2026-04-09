@@ -69,7 +69,7 @@ Tips must mention: ${building1}, Clan Castle, traps, and ${base_type} strategy.`
     const arrayMatch = jsonStr.match(/\[[\s\S]*\]/);
     if (!arrayMatch) {
       console.error("[pro-tips] No JSON array found in response:", raw);
-      res.status(500).json({ error: "AI returned unexpected format", raw });
+      res.json({ aiUnavailable: true, tips: [] });
       return;
     }
 
@@ -78,13 +78,13 @@ Tips must mention: ${building1}, Clan Castle, traps, and ${base_type} strategy.`
       tips = JSON.parse(arrayMatch[0]);
     } catch (parseErr) {
       console.error("[pro-tips] JSON parse failed:", parseErr, "raw:", arrayMatch[0]);
-      res.status(500).json({ error: "AI returned malformed JSON", raw: arrayMatch[0] });
+      res.json({ aiUnavailable: true, tips: [] });
       return;
     }
 
     if (!Array.isArray(tips) || tips.length === 0) {
       console.error("[pro-tips] Empty tips array:", tips);
-      res.status(500).json({ error: "AI returned empty tips array" });
+      res.json({ aiUnavailable: true, tips: [] });
       return;
     }
 
@@ -94,7 +94,7 @@ Tips must mention: ${building1}, Clan Castle, traps, and ${base_type} strategy.`
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error("[pro-tips] Gemini call failed:", msg);
-    res.status(500).json({ error: "Failed to generate pro tips", detail: msg });
+    res.json({ aiUnavailable: true, tips: [] });
   }
 });
 

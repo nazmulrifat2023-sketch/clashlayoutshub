@@ -48,7 +48,7 @@ router.get("/bases/:id/analyze", async (req: Request, res: Response) => {
     return res.json({ analysis, cached: false });
   } catch (err) {
     console.error("AI analyze error:", err);
-    return res.status(500).json({ error: "Failed to generate analysis" });
+    return res.json({ aiUnavailable: true, analysis: null });
   }
 });
 

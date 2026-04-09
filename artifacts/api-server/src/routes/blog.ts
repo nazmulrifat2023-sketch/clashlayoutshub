@@ -149,7 +149,7 @@ Requirements:
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error("[blog/generate-post] Error:", msg);
-    res.status(500).json({ error: "Failed to generate post", detail: msg });
+    res.json({ aiUnavailable: true, html: "" });
   }
 });
 
@@ -197,7 +197,7 @@ Return ONLY valid JSON in this exact format:
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error("[blog/generate-seo] Error:", msg);
-    res.status(500).json({ error: "Failed to generate SEO", detail: msg });
+    res.json({ aiUnavailable: true, excerpt: "", meta_title: "", meta_description: "" });
   }
 });
 
