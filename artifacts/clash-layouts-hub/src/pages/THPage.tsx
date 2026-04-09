@@ -43,10 +43,10 @@ export function THPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       {/* Breadcrumb */}
-      <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
+      <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
         <Link href="/" className="hover:text-primary transition-colors">Home</Link>
-        <ChevronRight className="w-4 h-4" />
-        <span className="text-foreground font-medium">TH{thLevel} Bases</span>
+        <ChevronRight className="w-4 h-4" aria-hidden="true" />
+        <span className="text-foreground font-medium" aria-current="page">TH{thLevel} Bases</span>
       </nav>
 
       {/* Header */}

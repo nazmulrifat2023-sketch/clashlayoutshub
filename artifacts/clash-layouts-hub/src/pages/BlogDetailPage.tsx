@@ -72,7 +72,7 @@ export function BlogDetailPage() {
     <article className="max-w-3xl mx-auto px-5 py-8 pb-16">
 
       {/* Breadcrumb */}
-      <nav className="flex items-center flex-wrap gap-1.5 text-sm text-muted-foreground mb-6">
+      <nav aria-label="Breadcrumb" className="flex items-center flex-wrap gap-1.5 text-sm text-muted-foreground mb-6">
         <Link href="/" className="hover:text-primary transition-colors">Home</Link>
         <ChevronRight className="w-3.5 h-3.5" />
         <Link href="/blog" className="hover:text-primary transition-colors">Blog</Link>

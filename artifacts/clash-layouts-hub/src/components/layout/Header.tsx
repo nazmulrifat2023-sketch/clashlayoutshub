@@ -56,11 +56,12 @@ export function Header() {
           </Link>
 
           {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-6">
+          <nav className="hidden md:flex items-center gap-6" aria-label="Main navigation">
             {navLinks.map(link => (
               <Link
                 key={link.href}
                 href={link.href}
+                aria-current={location === link.href ? "page" : undefined}
                 className={`text-sm font-medium transition-colors hover:text-primary ${
                   location === link.href ? "text-primary" : "text-muted-foreground"
                 }`}
@@ -180,11 +181,12 @@ export function Header() {
       {/* Mobile nav */}
       {mobileOpen && (
         <div id="mobile-nav" className="md:hidden bg-white border-t border-border">
-          <div className="px-4 py-3 space-y-1">
+          <nav className="px-4 py-3 space-y-1" aria-label="Mobile navigation">
             {navLinks.map(link => (
               <Link
                 key={link.href}
                 href={link.href}
+                aria-current={location === link.href ? "page" : undefined}
                 className={`block py-2 text-sm font-medium transition-colors hover:text-primary ${
                   location === link.href ? "text-primary" : "text-muted-foreground"
                 }`}
@@ -272,7 +274,7 @@ export function Header() {
                 </button>
               ))}
             </div>
-          </div>
+          </nav>
         </div>
       )}
     </header>

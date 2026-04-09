@@ -45,11 +45,27 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          "vendor-react": ["react", "react-dom"],
+          "vendor-query": ["@tanstack/react-query"],
+          "vendor-ui": ["lucide-react", "sonner"],
+          "vendor-router": ["wouter"],
+        },
+      },
+    },
   },
   server: {
     port,
     host: "0.0.0.0",
     allowedHosts: true,
+    headers: {
+      "X-Content-Type-Options": "nosniff",
+      "X-Frame-Options": "SAMEORIGIN",
+      "Referrer-Policy": "strict-origin-when-cross-origin",
+      "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+    },
     fs: {
       strict: true,
       deny: ["**/.*"],
