@@ -1,0 +1,330 @@
+Build "ClashLayoutsHub" — a production-ready, monetized Clash of Clans
+Base Layout Library. Stack: React + Vite, Express, PostgreSQL + Drizzle ORM,
+deployed to Vercel. Goal: earn revenue through ads, premium membership, and
+user-generated content SEO traffic.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ARCHITECTURE — VERCEL (READ FIRST)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+pnpm monorepo, but the serverless function MUST be self-contained:
+
+Frontend: artifacts/clash-layouts-hub/
+Backend:  artifacts/api-server/src/ — ALL DB, routes, schema live here.
+          ZERO @workspace/* cross-package imports that touch the bundle.
+
+Vercel entry point:
+  api/server.ts  ← 3-line CJS stub ONLY:
+    // @ts-nocheck
+    const bundle = require("./server.compiled.js");
+    module.exports = bundle.default ?? bundle;
+
+Build step (artifacts/api-server/build-vercel.mjs):
+  esbuild bundles src/app.ts → api/server.compiled.js
+  format: "cjs", bundle: true
+  external: ONLY "*.node" native addons
+  Bundle EVERYTHING else: pino, pino-http, express, drizzle-orm,
+  pg, nodemailer, bcryptjs, jsonwebtoken, cors, multer, cookie-parser
+
+Pino logger: MUST guard require.resolve("pino-pretty") before enabling
+  transport — worker threads crash inside esbuild bundles. Pattern:
+    const usePretty = process.env.NODE_ENV !== "production" && (() => {
+      try { require.resolve("pino-pretty"); return true; } catch { return false; }
+    })();
+
+Database initialization: MUST be LAZY — never throw at module load time.
+  Use getter functions that initialize on first call. A top-level throw
+  (e.g. "DATABASE_URL must be set") kills the Vercel Lambda before it
+  can serve ANY request, including health checks.
+    let _pool = null;
+    function getPool() {
+      if (!_pool) {
+        if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL required");
+        _pool = new Pool({ connectionString: process.env.DATABASE_URL });
+      }
+      return _pool;
+    }
+    export const db = new Proxy({}, { get(_, p) { return getDb()[p]; } });
+
+vercel.json buildCommand:
+  "pnpm install --frozen-lockfile &&
+   pnpm --filter @workspace/api-server run build:vercel &&
+   pnpm --filter @workspace/clash-layouts-hub run build"
+outputDirectory: "artifacts/clash-layouts-hub/dist/public"
+
+Image uploads: Use Cloudflare R2 (NOT local disk — Vercel has no
+  persistent filesystem). Install @aws-sdk/client-s3. Env vars:
+  R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME,
+  R2_PUBLIC_URL. Upload to R2 in the admin base/blog upload endpoints.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BRANDING & DESIGN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Name: ClashLayoutsHub
+Primary: #C27400 (--primary: 36 100% 38%) — WCAG AA
+Muted fg: 36 15% 40%
+Mobile-first, Tailwind CSS, dark/light mode
+Clash of Clans theme: gold accents, medieval/fantasy feel
+Font: Inter (body) + a bold display font for headings
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MONETIZATION (implement all of these)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+A. GOOGLE ADSENSE
+   - Ad slots in: header banner, sidebar, between base cards (every 6th),
+     base detail page (above fold + below fold), blog posts (mid-content)
+   - Use <AdSlot> component with VITE_ADSENSE_CLIENT + VITE_ADSENSE_SLOT_*
+     env vars, only rendered after GDPR consent is given
+   - Lazy-load ads with IntersectionObserver (improves Core Web Vitals)
+
+B. PREMIUM MEMBERSHIP — "ClashPro" ($4.99/month via Stripe)
+   Pro benefits shown prominently everywhere:
+   - Download base images (non-Pro sees blurred overlay + upgrade CTA)
+   - No ads
+   - Unlimited favorites/bookmarks (free users: 10 max)
+   - Early access to new bases (24h before public)
+   - Priority support badge on profile
+   Stripe integration:
+   - POST /api/stripe/create-checkout-session
+   - POST /api/stripe/webhook (update users.is_pro, users.pro_expires_at)
+   - GET  /api/stripe/portal (manage subscription)
+   - Env vars: STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET,
+     STRIPE_PRO_PRICE_ID, VITE_STRIPE_PUBLISHABLE_KEY
+
+C. USER-SUBMITTED BASES (UGC = SEO scale)
+   - Logged-in users can submit their own bases via a form
+   - Submitted bases go into "pending" status for admin review
+   - Approved bases credit the submitter with their username
+   - Submitters earn a "Creator" badge after 5 approved bases
+   - This generates thousands of SEO-indexable pages automatically
+
+D. EMAIL LIST (Mailchimp or Resend)
+   - "Get 10 new bases every week" newsletter opt-in
+   - Shown as: exit-intent popup, footer form, post-copy modal
+   - Env vars: RESEND_API_KEY, EMAIL_FROM, EMAIL_LIST_ID
+   - POST /api/newsletter/subscribe — validates email, adds to list
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CORE FEATURES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. BASE BROWSING
+   - Town Hall levels TH3–TH18 with icon grid on homepage
+   - Filters: type (War/Trophy/Farming/Hybrid/CWL), tags, TH level
+   - Sort: newest, most copied, top rated
+   - Cards: TH badge, image, copy count, health score, tags, Copy button
+   - Copy increments counter (optimistic UI), shows "Link Copied!" toast
+   - Infinite scroll OR pagination (12 per page) — choose infinite scroll
+   - "Trending Today" section on homepage (highest copies in last 24h)
+   - "New This Week" section
+
+2. BASE DETAIL PAGE (/bases/:id)
+   - Full image (blurred for non-Pro on download, free to view)
+   - Big "Copy Base Link" button — 1-click copy
+   - Download button (Pro only — watermarked image download for free users)
+   - Health score badge + copy count + date
+   - Tags, TH level, submitted by (username link)
+   - Related bases (same TH level, same type)
+   - Report button (modal: broken link / outdated / inappropriate)
+   - Share buttons: Twitter/X, WhatsApp, copy URL
+   - Schema.org structured data (ImageObject + WebPage)
+   - Canonical URL
+
+3. HEALTH SCORE (0–100, server-side)
+   copies_score = min(copies / 50, 40)        ← max 40 points
+   age_penalty  = min(days_old / 30, 20)      ← max -20 points
+   report_penalty = reports * 10              ← -10 per report
+   health = max(0, 60 + copies_score - age_penalty - report_penalty)
+   Bases below 15 hidden from listings.
+
+4. FAVORITES / BOOKMARKS
+   - Heart button on every card + detail page
+   - Free: max 10 favorites; Pro: unlimited
+   - /profile/favorites page showing saved bases
+   - favorites table: user_id, base_id, created_at
+
+5. AUTHENTICATION
+   - JWT "clh_token" in localStorage (30-day expiry)
+   - Google OAuth (GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI)
+   - Email + password with bcryptjs
+   - Forgot password via Resend email
+   - Admin JWT "clh_admin_token" (12h), from ADMIN_EMAIL + ADMIN_PASSWORD
+   - Cloudflare Turnstile on register + login forms
+   - Rate limiting: 10 auth attempts per IP per 15 minutes
+
+6. USER PROFILES (/profile/:username)
+   - Avatar (Gravatar fallback), username, join date, badge (Pro/Creator)
+   - Submitted bases grid
+   - Public favorites (if user makes them public)
+
+7. ADMIN PANEL (/admin)
+   - Login → dashboard with: total bases, total copies, pending submissions,
+     new users today, revenue this month (from Stripe)
+   - Base management: approve/reject submissions, edit, delete
+   - Upload images → R2 (NOT local disk)
+   - Blog management: rich text (TipTap or react-quill), SEO fields
+   - Report queue: view + dismiss
+   - User management: view, ban, toggle Pro manually
+   - Newsletter: view subscriber count
+
+8. BLOG (/blog, /blog/:slug)
+   - Published posts with cover image, tags, estimated read time
+   - Markdown rendered with react-markdown
+   - SEO: og:title, og:description, og:image, canonical URL
+   - Related posts section
+   - Newsletter signup CTA at end of each post
+
+9. MULTILINGUAL (EN / Bengali / Hindi)
+   - i18next, language switcher persisted to localStorage
+   - Translated: nav, hero, buttons, labels, footer, meta tags
+
+10. GDPR CONSENT BANNER
+    - "Accept All" / "Reject Non-Essential"
+    - Persisted to localStorage key "gdpr_consent"
+    - AdSense and analytics scripts only injected after acceptance
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DATABASE SCHEMA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+users: id serial PK, email unique, password_hash, name, username unique,
+  avatar_url, is_pro boolean default false, pro_expires_at timestamp,
+  stripe_customer_id, is_banned boolean default false,
+  is_creator boolean default false, created_at
+
+bases: id serial PK, title, th_level int (3-18), base_type varchar,
+  image_url, copy_link, copies int default 0,
+  health_score int default 100, tags text[], is_visible boolean default true,
+  status varchar default 'approved', -- pending/approved/rejected
+  submitted_by int FK users, created_at
+
+favorites: id serial PK, user_id FK, base_id FK, created_at
+  UNIQUE(user_id, base_id)
+
+reports: id serial PK, base_id FK, reason, reporter_ip,
+  status varchar default 'pending', created_at
+
+blog_posts: id serial PK, title, slug unique, content text,
+  cover_image_url, tags text[], status varchar default 'draft',
+  seo_title, seo_description, created_at, updated_at
+
+newsletter_subscribers: id serial PK, email unique,
+  confirmed boolean default false, created_at
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+API ROUTES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+GET  /api/healthz                        ← NO DB call, always returns 200
+GET  /api/bases?th=&type=&sort=&page=&status=approved
+GET  /api/bases/trending                 ← top copies last 24h
+GET  /api/bases/:id
+POST /api/bases/:id/copy
+POST /api/bases/:id/report
+POST /api/bases              ← user submission (auth required)
+GET  /api/blog
+GET  /api/blog/:slug
+GET  /api/auth/me
+POST /api/auth/register      + turnstile
+POST /api/auth/login         + turnstile
+POST /api/auth/google
+GET  /api/auth/google/callback
+POST /api/auth/forgot-password
+POST /api/auth/reset-password
+GET  /api/favorites          (auth required)
+POST /api/favorites          (auth required, body: {base_id})
+DELETE /api/favorites/:base_id (auth required)
+POST /api/newsletter/subscribe
+POST /api/stripe/create-checkout-session (auth required)
+POST /api/stripe/webhook     (raw body, Stripe signature check)
+GET  /api/stripe/portal      (auth required)
+POST /api/admin/login
+GET  /api/admin/dashboard
+GET/POST/PUT/DELETE /api/admin/bases
+POST /api/admin/bases/:id/approve
+POST /api/admin/bases/:id/reject
+GET/POST/PUT/DELETE /api/admin/blog
+GET  /api/admin/reports
+POST /api/admin/reports/:id/dismiss
+GET  /api/admin/users
+POST /api/admin/users/:id/ban
+POST /api/admin/users/:id/toggle-pro
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PAGES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+/                  Hero, TH grid, Trending, New This Week, Ad slots
+/bases             Browse with filters + infinite scroll
+/bases/:id         Detail, copy button, Pro download gate, share, report
+/blog              Post listing
+/blog/:slug        Full post with newsletter CTA
+/login             Turnstile + Google OAuth
+/register          Turnstile + Google OAuth + "Start Free" messaging
+/forgot-password
+/profile/:username Public profile
+/profile/favorites Saved bases (auth required)
+/pricing           ClashPro benefits table, Stripe checkout CTA
+/admin             Login
+/admin/dashboard
+/admin/bases       With pending submissions tab
+/admin/bases/new
+/admin/bases/:id/edit
+/admin/blog
+/admin/blog/new
+/admin/reports
+/admin/users
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SEO & PERFORMANCE (Lighthouse 90+ all categories)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- react-helmet-async per page: title, description, og:*, twitter:*
+- Dynamic /sitemap.xml from Express (all bases + blog posts)
+- Schema.org JSON-LD on base detail pages (ImageObject)
+- Skip-to-content link, aria-current nav, all images have alt
+- Lazy-load images with loading="lazy"
+- Preconnect to fonts, R2 CDN
+- Security headers in vercel.json
+- /robots.txt served by Express
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ENVIRONMENT VARIABLES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Backend:
+  DATABASE_URL, SESSION_SECRET, ADMIN_EMAIL, ADMIN_PASSWORD
+  GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI
+  TURNSTILE_SECRET_KEY
+  STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, STRIPE_PRO_PRICE_ID
+  RESEND_API_KEY, EMAIL_FROM
+  R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY,
+  R2_BUCKET_NAME, R2_PUBLIC_URL
+
+Frontend (VITE_ prefix):
+  VITE_TURNSTILE_SITE_KEY, VITE_GOOGLE_CLIENT_ID
+  VITE_STRIPE_PUBLISHABLE_KEY
+  VITE_ADSENSE_CLIENT, VITE_ADSENSE_SLOT_HEADER,
+  VITE_ADSENSE_SLOT_SIDEBAR, VITE_ADSENSE_SLOT_INFEED
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+vercel.json
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+{
+  "version": 2,
+  "buildCommand": "pnpm install --frozen-lockfile && pnpm --filter @workspace/api-server run build:vercel && pnpm --filter @workspace/clash-layouts-hub run build",
+  "outputDirectory": "artifacts/clash-layouts-hub/dist/public",
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "/api/server" },
+    { "source": "/sitemap.xml", "destination": "/api/server" },
+    { "source": "/robots.txt", "destination": "/api/server" },
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
+  ],
+  "functions": { "api/server.ts": { "maxDuration": 30 } },
+  "headers": [
+    { "source": "/(.*)", "headers": [
+      { "key": "X-Content-Type-Options", "value": "nosniff" },
+      { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+      { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+      { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" }
+    ]},
+    { "source": "/assets/(.*)", "headers": [
+      { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+    ]}
+  ]
+}
