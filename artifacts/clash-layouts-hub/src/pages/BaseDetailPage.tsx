@@ -419,6 +419,8 @@ export function BaseDetailPage() {
                     alt={altText}
                     className="w-full object-cover"
                     loading="eager"
+                    fetchPriority="high"
+                    decoding="async"
                     style={{ touchAction: "pinch-zoom" }}
                   />
                 ) : (
