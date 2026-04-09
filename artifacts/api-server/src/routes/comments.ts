@@ -1,4 +1,4 @@
-import { Router, type IRouter } from "express";
+import { Router, type IRouter, type Request, type Response } from "express";
 import { eq, desc } from "drizzle-orm";
 import { db, commentsTable, basesTable } from "@workspace/db";
 import { sql } from "drizzle-orm";
@@ -17,7 +17,7 @@ function mapComment(c: typeof commentsTable.$inferSelect) {
   };
 }
 
-router.get("/comments/:baseId", async (req, res): Promise<void> => {
+router.get("/comments/:baseId", async (req: Request, res: Response): Promise<void> => {
   const params = ListCommentsParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });
@@ -31,7 +31,7 @@ router.get("/comments/:baseId", async (req, res): Promise<void> => {
   res.json(comments.map(mapComment));
 });
 
-router.post("/comments/:baseId", async (req, res): Promise<void> => {
+router.post("/comments/:baseId", async (req: Request, res: Response): Promise<void> => {
   const params = AddCommentParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });

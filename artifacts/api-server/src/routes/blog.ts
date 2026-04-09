@@ -1,4 +1,4 @@
-import { Router, type IRouter } from "express";
+import { Router, type IRouter, type Request, type Response } from "express";
 import { eq, desc, count, sql } from "drizzle-orm";
 import { db, blogPostsTable } from "@workspace/db";
 import { ai } from "@workspace/integrations-gemini-ai";
@@ -21,7 +21,7 @@ function mapPost(p: typeof blogPostsTable.$inferSelect) {
   };
 }
 
-router.get("/blog", async (req, res): Promise<void> => {
+router.get("/blog", async (req: Request, res: Response): Promise<void> => {
   const parsed = ListBlogPostsQueryParams.safeParse(req.query);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
@@ -46,7 +46,7 @@ router.get("/blog", async (req, res): Promise<void> => {
   });
 });
 
-router.post("/blog", async (req, res): Promise<void> => {
+router.post("/blog", async (req: Request, res: Response): Promise<void> => {
   const parsed = CreateBlogPostBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
@@ -60,7 +60,7 @@ router.post("/blog", async (req, res): Promise<void> => {
   res.status(201).json(mapPost(post));
 });
 
-router.get("/blog/:slug", async (req, res): Promise<void> => {
+router.get("/blog/:slug", async (req: Request, res: Response): Promise<void> => {
   const params = GetBlogPostParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });
@@ -77,7 +77,7 @@ router.get("/blog/:slug", async (req, res): Promise<void> => {
   res.json(mapPost(post));
 });
 
-router.put("/blog/:slug", async (req, res): Promise<void> => {
+router.put("/blog/:slug", async (req: Request, res: Response): Promise<void> => {
   const params = UpdateBlogPostParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });
@@ -98,7 +98,7 @@ router.put("/blog/:slug", async (req, res): Promise<void> => {
   res.json(mapPost(post));
 });
 
-router.delete("/blog/:slug", async (req, res): Promise<void> => {
+router.delete("/blog/:slug", async (req: Request, res: Response): Promise<void> => {
   const params = DeleteBlogPostParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });
@@ -113,7 +113,7 @@ router.delete("/blog/:slug", async (req, res): Promise<void> => {
   res.json({ message: "Post deleted" });
 });
 
-router.post("/blog/generate-post", async (req, res): Promise<void> => {
+router.post("/blog/generate-post", async (req: Request, res: Response): Promise<void> => {
   const { title } = req.body as { title?: string };
   if (!title?.trim()) {
     res.status(400).json({ error: "title is required" });
@@ -149,7 +149,7 @@ Requirements:
   }
 });
 
-router.post("/blog/generate-seo", async (req, res): Promise<void> => {
+router.post("/blog/generate-seo", async (req: Request, res: Response): Promise<void> => {
   const { title, content } = req.body as { title?: string; content?: string };
   if (!content?.trim()) {
     res.status(400).json({ error: "content is required" });

@@ -1,10 +1,10 @@
-import { Router, type IRouter } from "express";
+import { Router, type IRouter, type Request, type Response } from "express";
 import { eq, desc, count, sql, and, gte } from "drizzle-orm";
 import { db, basesTable, submissionsTable, reportsTable, viewsAnalyticsTable } from "@workspace/db";
 
 const router: IRouter = Router();
 
-router.get("/analytics/dashboard", async (req, res): Promise<void> => {
+router.get("/analytics/dashboard", async (_req: Request, res: Response): Promise<void> => {
   const [
     [{ totalBases }],
     [{ totalViews }],
@@ -32,7 +32,7 @@ router.get("/analytics/dashboard", async (req, res): Promise<void> => {
   });
 });
 
-router.get("/analytics/views", async (req, res): Promise<void> => {
+router.get("/analytics/views", async (_req: Request, res: Response): Promise<void> => {
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
   const cutoff = thirtyDaysAgo.toISOString().split("T")[0];
@@ -50,7 +50,7 @@ router.get("/analytics/views", async (req, res): Promise<void> => {
   res.json(rows.map(r => ({ date: r.date, views: Number(r.views) })));
 });
 
-router.get("/analytics/top-bases", async (req, res): Promise<void> => {
+router.get("/analytics/top-bases", async (_req: Request, res: Response): Promise<void> => {
   const bases = await db.select().from(basesTable)
     .where(eq(basesTable.is_active, true))
     .orderBy(desc(basesTable.copies))

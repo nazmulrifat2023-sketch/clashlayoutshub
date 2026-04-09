@@ -1,12 +1,12 @@
-import { Router } from "express";
+import { Router, type IRouter, type Request, type Response } from "express";
 import { db } from "@workspace/db";
 import { basesTable } from "@workspace/db/schema";
 import { eq } from "drizzle-orm";
 import { ai } from "@workspace/integrations-gemini-ai";
 
-const router = Router();
+const router: IRouter = Router();
 
-router.get("/bases/:id/analyze", async (req, res) => {
+router.get("/bases/:id/analyze", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 

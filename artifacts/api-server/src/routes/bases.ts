@@ -1,4 +1,4 @@
-import { Router, type IRouter } from "express";
+import { Router, type IRouter, type Request, type Response } from "express";
 import { eq, and, desc, asc, ilike, sql, count, ne, inArray } from "drizzle-orm";
 import { db, basesTable, reportsTable, copiesAnalyticsTable, viewsAnalyticsTable } from "@workspace/db";
 import {
@@ -31,7 +31,7 @@ function mapBase(b: typeof basesTable.$inferSelect) {
   };
 }
 
-router.get("/bases", async (req, res): Promise<void> => {
+router.get("/bases", async (req: Request, res: Response): Promise<void> => {
   const parsed = ListBasesQueryParams.safeParse(req.query);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
@@ -74,7 +74,7 @@ router.get("/bases", async (req, res): Promise<void> => {
   });
 });
 
-router.get("/bases/trending", async (req, res): Promise<void> => {
+router.get("/bases/trending", async (_req: Request, res: Response): Promise<void> => {
   const bases = await db.select().from(basesTable)
     .where(and(eq(basesTable.approved, true), eq(basesTable.is_active, true)))
     .orderBy(desc(basesTable.copies))
@@ -82,7 +82,7 @@ router.get("/bases/trending", async (req, res): Promise<void> => {
   res.json(bases.map(mapBase));
 });
 
-router.get("/bases/base-of-day", async (req, res): Promise<void> => {
+router.get("/bases/base-of-day", async (_req: Request, res: Response): Promise<void> => {
   const bases = await db.select().from(basesTable)
     .where(and(eq(basesTable.approved, true), eq(basesTable.is_active, true)))
     .orderBy(desc(basesTable.rating_avg))
@@ -94,7 +94,7 @@ router.get("/bases/base-of-day", async (req, res): Promise<void> => {
   res.json(mapBase(bases[0]));
 });
 
-router.get("/bases/stats", async (req, res): Promise<void> => {
+router.get("/bases/stats", async (_req: Request, res: Response): Promise<void> => {
   const [{ total }] = await db.select({ total: count() }).from(basesTable).where(and(eq(basesTable.approved, true), eq(basesTable.is_active, true)));
   const [viewsRow] = await db.select({ totalViews: sql<number>`COALESCE(SUM(${basesTable.views}), 0)` }).from(basesTable);
   const [copiesRow] = await db.select({ totalCopies: sql<number>`COALESCE(SUM(${basesTable.copies}), 0)` }).from(basesTable);
@@ -110,7 +110,7 @@ router.get("/bases/stats", async (req, res): Promise<void> => {
   });
 });
 
-router.get("/bases/th-summary", async (req, res): Promise<void> => {
+router.get("/bases/th-summary", async (_req: Request, res: Response): Promise<void> => {
   const result = await db
     .select({
       townhall: basesTable.townhall,
@@ -129,7 +129,7 @@ router.get("/bases/th-summary", async (req, res): Promise<void> => {
   })));
 });
 
-router.post("/bases", async (req, res): Promise<void> => {
+router.post("/bases", async (req: Request, res: Response): Promise<void> => {
   const parsed = CreateBaseBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
@@ -152,7 +152,7 @@ router.post("/bases", async (req, res): Promise<void> => {
   res.status(201).json(mapBase(base));
 });
 
-router.get("/bases/slug/:slug", async (req, res): Promise<void> => {
+router.get("/bases/slug/:slug", async (req: Request, res: Response): Promise<void> => {
   const params = GetBaseBySlugParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });
@@ -167,7 +167,7 @@ router.get("/bases/slug/:slug", async (req, res): Promise<void> => {
   res.json(mapBase(base));
 });
 
-router.get("/bases/:id", async (req, res): Promise<void> => {
+router.get("/bases/:id", async (req: Request, res: Response): Promise<void> => {
   const params = GetBaseParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });
@@ -182,7 +182,7 @@ router.get("/bases/:id", async (req, res): Promise<void> => {
   res.json(mapBase(base));
 });
 
-router.put("/bases/:id", async (req, res): Promise<void> => {
+router.put("/bases/:id", async (req: Request, res: Response): Promise<void> => {
   const idRaw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const parsed = UpdateBaseBody.safeParse(req.body);
   if (!parsed.success) {
@@ -202,7 +202,7 @@ router.put("/bases/:id", async (req, res): Promise<void> => {
   res.json(mapBase(base));
 });
 
-router.delete("/bases/:id", async (req, res): Promise<void> => {
+router.delete("/bases/:id", async (req: Request, res: Response): Promise<void> => {
   const idRaw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const [base] = await db.delete(basesTable).where(eq(basesTable.id, idRaw)).returning();
   if (!base) {
@@ -212,7 +212,7 @@ router.delete("/bases/:id", async (req, res): Promise<void> => {
   res.json({ message: "Base deleted" });
 });
 
-router.post("/bases/:id/copy", async (req, res): Promise<void> => {
+router.post("/bases/:id/copy", async (req: Request, res: Response): Promise<void> => {
   const params = IncrementBaseCopyParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });
@@ -239,7 +239,7 @@ router.post("/bases/:id/copy", async (req, res): Promise<void> => {
   res.json({ copies: base.copies, message: "Copy recorded" });
 });
 
-router.post("/bases/:id/view", async (req, res): Promise<void> => {
+router.post("/bases/:id/view", async (req: Request, res: Response): Promise<void> => {
   const params = IncrementBaseViewParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });
@@ -260,7 +260,7 @@ router.post("/bases/:id/view", async (req, res): Promise<void> => {
   res.json({ message: "View recorded" });
 });
 
-router.get("/bases/:id/similar", async (req, res): Promise<void> => {
+router.get("/bases/:id/similar", async (req: Request, res: Response): Promise<void> => {
   const params = GetSimilarBasesParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });
@@ -286,7 +286,7 @@ router.get("/bases/:id/similar", async (req, res): Promise<void> => {
   res.json(similar.map(mapBase));
 });
 
-router.get("/bases/:id/today-copies", async (req, res): Promise<void> => {
+router.get("/bases/:id/today-copies", async (req: Request, res: Response): Promise<void> => {
   const params = GetBaseTodayCopiesParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });

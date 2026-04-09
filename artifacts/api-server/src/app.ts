@@ -2,9 +2,9 @@ import express, { type Express } from "express";
 import cors from "cors";
 import pinoHttp from "pino-http";
 import path from "path";
-import router from "./routes";
-import sitemapRouter from "./routes/sitemap";
-import { logger } from "./lib/logger";
+import router from "./routes/index.js";
+import sitemapRouter from "./routes/sitemap.js";
+import { logger } from "./lib/logger.js";
 
 const app: Express = express();
 

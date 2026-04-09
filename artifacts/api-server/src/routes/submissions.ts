@@ -1,4 +1,4 @@
-import { Router, type IRouter } from "express";
+import { Router, type IRouter, type Request, type Response } from "express";
 import { eq, desc, count } from "drizzle-orm";
 import { db, submissionsTable } from "@workspace/db";
 import {
@@ -17,7 +17,7 @@ function mapSubmission(s: typeof submissionsTable.$inferSelect) {
   };
 }
 
-router.get("/submissions", async (req, res): Promise<void> => {
+router.get("/submissions", async (req: Request, res: Response): Promise<void> => {
   const parsed = ListSubmissionsQueryParams.safeParse(req.query);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
@@ -47,7 +47,7 @@ router.get("/submissions", async (req, res): Promise<void> => {
   });
 });
 
-router.post("/submissions", async (req, res): Promise<void> => {
+router.post("/submissions", async (req: Request, res: Response): Promise<void> => {
   const parsed = CreateSubmissionBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
@@ -63,7 +63,7 @@ router.post("/submissions", async (req, res): Promise<void> => {
   res.status(201).json({ message: "Submission received! Our team will review it soon." });
 });
 
-router.put("/submissions/:id", async (req, res): Promise<void> => {
+router.put("/submissions/:id", async (req: Request, res: Response): Promise<void> => {
   const params = UpdateSubmissionParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });

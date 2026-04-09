@@ -1,4 +1,4 @@
-import { Router, type IRouter } from "express";
+import { Router, type IRouter, type Request, type Response } from "express";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -29,7 +29,7 @@ const upload = multer({
   },
 });
 
-router.post("/upload/image", upload.single("image"), (req, res): void => {
+router.post("/upload/image", upload.single("image"), (req: Request, res: Response): void => {
   if (!req.file) {
     res.status(400).json({ error: "No file uploaded" });
     return;
@@ -38,7 +38,7 @@ router.post("/upload/image", upload.single("image"), (req, res): void => {
   res.json({ url, filename: req.file.filename });
 });
 
-router.post("/suggest-description", async (req, res): Promise<void> => {
+router.post("/suggest-description", async (req: Request, res: Response): Promise<void> => {
   const { townhall, base_type } = req.body as {
     townhall?: number;
     base_type?: string;
@@ -77,7 +77,6 @@ RULES:
     });
 
     let description = (response.text ?? "").trim();
-    // Strip any markdown code fences Gemini might wrap around HTML
     description = description.replace(/^```html?\s*/i, "").replace(/```\s*$/, "").trim();
     console.log(`[suggest-description] Raw length: ${description.length} chars`);
 
@@ -85,7 +84,6 @@ RULES:
       throw new Error("AI returned too short a description");
     }
 
-    // Hard-cap at 1400 chars at the last closing tag boundary
     if (description.length > 1400) {
       const slice = description.slice(0, 1400);
       const lastTag = slice.lastIndexOf("</p>");

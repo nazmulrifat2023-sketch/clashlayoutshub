@@ -1,4 +1,4 @@
-import { Router, type IRouter } from "express";
+import { Router, type IRouter, type Request, type Response } from "express";
 import { eq, desc, count, sql } from "drizzle-orm";
 import { db, reportsTable, basesTable } from "@workspace/db";
 import {
@@ -8,7 +8,7 @@ import {
 
 const router: IRouter = Router();
 
-router.get("/reports", async (req, res): Promise<void> => {
+router.get("/reports", async (req: Request, res: Response): Promise<void> => {
   const parsed = ListReportsQueryParams.safeParse(req.query);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
@@ -47,7 +47,7 @@ router.get("/reports", async (req, res): Promise<void> => {
   });
 });
 
-router.post("/reports", async (req, res): Promise<void> => {
+router.post("/reports", async (req: Request, res: Response): Promise<void> => {
   const parsed = CreateReportBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });

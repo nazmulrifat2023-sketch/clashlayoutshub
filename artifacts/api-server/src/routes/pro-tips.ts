@@ -1,7 +1,7 @@
-import { Router } from "express";
+import { Router, type IRouter, type Request, type Response } from "express";
 import { ai } from "@workspace/integrations-gemini-ai";
 
-const router = Router();
+const router: IRouter = Router();
 
 const TH_BUILDINGS: Record<number, string> = {
   3:  "Mortar, Archer Tower, Cannon",
@@ -22,7 +22,7 @@ const TH_BUILDINGS: Record<number, string> = {
   18: "Monolith, Super X-Bow, Ricochet Cannon",
 };
 
-router.post("/generate-pro-tips", async (req, res): Promise<void> => {
+router.post("/generate-pro-tips", async (req: Request, res: Response): Promise<void> => {
   try {
     const { townhall, base_type } = req.body as { townhall?: number; base_type?: string };
 
@@ -58,7 +58,6 @@ Tips must mention: ${building1}, Clan Castle, traps, and ${base_type} strategy.`
     const raw = (response.text ?? "").trim();
     console.log(`[pro-tips] Raw response (${raw.length} chars):`, raw.substring(0, 300));
 
-    // Try to extract JSON array — handles markdown code blocks too
     let jsonStr = raw;
     const codeBlockMatch = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
     if (codeBlockMatch) jsonStr = codeBlockMatch[1].trim();
