@@ -6,26 +6,29 @@ import { build as esbuild } from "esbuild";
 globalThis.require = createRequire(import.meta.url);
 
 const artifactDir = path.dirname(fileURLToPath(import.meta.url));
+const repoRoot = path.resolve(artifactDir, "../..");
 
-// Bundles src/app.ts (Express app without the server listener) into a single
-// self-contained ESM file for Vercel serverless deployment.
+// Bundles src/app.ts (Express app, no server listener) into a single
+// self-contained CJS file at api/server.compiled.js.
 //
-// pino, pino-http, and all npm deps are BUNDLED (not external) so the
-// Vercel Lambda environment does not need to resolve pnpm symlinks at runtime.
-// Only truly native/unbundleable packages stay external.
+// api/server.ts is a tiny 2-line stub that just does:
+//   const bundle = require("./server.compiled.js");
+//   module.exports = bundle.default ?? bundle;
+//
+// This way Vercel's TypeScript compiler never sees any workspace-package
+// imports, and the Lambda has zero runtime npm dependencies.
 await esbuild({
   entryPoints: [path.resolve(artifactDir, "src/app.ts")],
   platform: "node",
   bundle: true,
-  format: "esm",
-  outfile: path.resolve(artifactDir, "dist/app.mjs"),
+  format: "cjs",
+  outfile: path.resolve(repoRoot, "api/server.compiled.js"),
   logLevel: "info",
-  // Keep only native addons and packages with unavoidable dynamic-require
-  // issues as external. Everything else is bundled for a self-contained Lambda.
+  // Only truly unbundleable native addons stay external.
+  // Everything else (pino, express, drizzle, pg, nodemailer, …) is bundled
+  // so the Lambda is fully self-contained.
   external: [
-    // Native addons – can never be bundled
     "*.node",
-    // These packages use native bindings or are truly unbundleable
     "sharp",
     "better-sqlite3",
     "sqlite3",
@@ -97,16 +100,8 @@ await esbuild({
     "electron",
   ],
   sourcemap: false,
-  banner: {
-    js: `import { createRequire as __bannerCrReq } from 'node:module';
-import __bannerPath from 'node:path';
-import __bannerUrl from 'node:url';
-
-globalThis.require = __bannerCrReq(import.meta.url);
-globalThis.__filename = __bannerUrl.fileURLToPath(import.meta.url);
-globalThis.__dirname = __bannerPath.dirname(globalThis.__filename);
-    `,
-  },
+  // CJS shims for __dirname / __filename are provided by Node automatically.
+  // No banner needed.
 }).catch((err) => {
   console.error(err);
   process.exit(1);
